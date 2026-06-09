@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gregory Hebner | Product Management Portfolio</title>
+    <title>Gregory J. Hebner | Product Management Portfolio</title>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; margin: 0; padding: 0; color: #333; }
-        .container { max-width: 900px; margin: auto; padding: 20px; }
-        h1 { color: #2c3e50; }
-        .skill-bar { background: #f4f4f4; border-radius: 5px; margin: 10px 0; overflow: hidden; }
-        .skill-fill { height: 20px; color: white; text-align: right; padding-right: 10px; font-size: 12px; }
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
-        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; color: #333; background-color: #f9f9f9; }
+        .container { max-width: 900px; margin: auto; padding: 40px 20px; }
+        h1 { color: #1a1a1a; margin-bottom: 10px; }
+        h2 { color: #2c3e50; margin-top: 40px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .skill-bar-container { margin: 20px 0; }
+        .skill-label { font-weight: bold; margin-bottom: 5px; display: block; }
+        .skill-bar { background: #e0e0e0; border-radius: 5px; height: 25px; overflow: hidden; }
+        .skill-fill { height: 100%; color: white; display: flex; align-items: center; padding-left: 10px; font-size: 14px; font-weight: bold; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { border: 1px solid #ddd; padding: 25px; border-radius: 10px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card h3 { margin-top: 0; color: #3A6B1A; }
     </style>
 </head>
 <body>
@@ -27,17 +31,14 @@
             <div class="card">
                 <h3>Value Engineering & Roadmap Strategy</h3>
                 <p>Applying structured, analytical frameworks to optimize margins and feature prioritization.</p>
-                <p>I utilize formal Value Engineering frameworks to balance technical constraints, manufacturing costs, and customer value.</p>
             </div>
             <div class="card">
                 <h3>Hardware Ecosystems</h3>
                 <p>Architecting robust, connected solutions that bridge physical assets and digital platforms.</p>
-                <p>My background is rooted in commercial hardware, backed by utility patents for physical mechanisms.</p>
             </div>
             <div class="card">
                 <h3>Scaled Execution & Lifecycle Management</h3>
                 <p>Driving disciplined cross-functional alignment from initial concept through market launch.</p>
-                <p>I specialize in navigating complex stage-gate processes and supply chain dependencies.</p>
             </div>
         </div>
     </div>
@@ -54,10 +55,15 @@
 
         const container = document.getElementById('skills-container');
         SKILLS.forEach(skill => {
-            const bar = document.createElement('div');
-            bar.className = 'skill-bar';
-            bar.innerHTML = `<div class="skill-fill" style="width: ${skill.pct}%; background-color: ${skill.color}">${skill.label} ${skill.pct}%</div>`;
-            container.appendChild(bar);
+            const div = document.createElement('div');
+            div.className = 'skill-bar-container';
+            div.innerHTML = `
+                <span class="skill-label">${skill.label}</span>
+                <div class="skill-bar">
+                    <div class="skill-fill" style="width: ${skill.pct}%; background-color: ${skill.color}">${skill.pct}%</div>
+                </div>
+            `;
+            container.appendChild(div);
         });
     </script>
 </body>
