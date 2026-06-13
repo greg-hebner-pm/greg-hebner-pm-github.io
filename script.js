@@ -1,75 +1,34 @@
-const map = L.map('map').setView([38.8602, -104.8801], 14);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+document.addEventListener('DOMContentLoaded', () => {
+    const map = L.map('map').setView([38.8602, -104.8801], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-const gpsCoords = document.getElementById('gps-coords');
-map.on('mousemove', (e) => {
-    gpsCoords.innerText = `Lat: ${e.latlng.lat.toFixed(4)}, Lon: ${e.latlng.lng.toFixed(4)}`;
-});
+    // Chart
+    new Chart(document.getElementById('gddChart'), {
+        type: 'line',
+        data: { labels: ['May 1', 'May 3', 'May 5', 'May 7'], datasets: [{ label: 'GDD', data: [15, 48, 85, 120], borderColor: '#2d5a27' }] }
+    });
 
-const drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
+    // Persistence
+    const fieldInput = document.getElementById('fieldName');
+    document.getElementById('saveField').addEventListener('click', () => {
+        const fields = JSON.parse(localStorage.getItem('savedFields') || '[]');
+        fields.push(fieldInput.value);
+        localStorage.setItem('savedFields', JSON.stringify(fields));
+        renderFields();
+    });
 
-const drawControl = new L.Control.Draw({
-    draw: {
-        polygon: { allowIntersection: false, showArea: true },
-        circle: true,
-        rectangle: false,
-        polyline: false,
-        marker: false,
-        circlemarker: false
-    },
-    edit: { featureGroup: drawnItems }
-});
-map.addControl(drawControl);
-
-map.on(L.Draw.Event.CREATED, (e) => {
-    drawnItems.clearLayers();
-    const layer = e.layer;
-    drawnItems.addLayer(layer);
-    updateMetrics(layer);
-});
-
-function updateMetrics(layer) {
-    let area, perimeter;
-    if (layer instanceof L.Polygon) {
-        const latlngs = layer.getLatLngs()[0];
-        area = (L.GeometryUtil.geodesicArea(latlngs) * 0.000247105).toFixed(2);
-        let dist = 0;
-        for (let i = 0; i < latlngs.length; i++) {
-            dist += latlngs[i].distanceTo(latlngs[(i + 1) % latlngs.length]);
-        }
-        perimeter = (dist * 0.000621371).toFixed(2);
-    } else if (layer instanceof L.Circle) {
-        const radius = layer.getRadius();
-        area = (Math.PI * radius * radius * 0.000247105).toFixed(2);
-        perimeter = (2 * Math.PI * radius * 0.000621371).toFixed(2);
+    function renderFields() {
+        const fields = JSON.parse(localStorage.getItem('savedFields') || '[]');
+        document.getElementById('fieldList').innerHTML = fields.map(f => `<li>🚜 ${f}</li>`).join('');
     }
-    document.getElementById('acreage').innerText = area + ' Acres';
-    document.getElementById('perimeter').innerText = perimeter;
-    document.getElementById('machinery').innerText = 'Ready for Ops';
-}
+    renderFields();
 
-function updateWeather() {
-    document.getElementById('temp').innerText = '74°F';
-    document.getElementById('feels-like').innerText = '72°F';
-    document.getElementById('precip-prob').innerText = '5%';
-    document.getElementById('precip-amount').innerText = '0.0"';
-    document.getElementById('wind').innerText = '8 mph WNW';
-}
-updateWeather();
-
-window.askAI = function(topic) {
-    const chat = document.getElementById('chat-history');
-    const msg = document.createElement('p');
-    msg.innerHTML = `<strong>Agent:</strong> Analyzing ${topic} for your current field... Optimization complete.`;
-    chat.appendChild(msg);
-};
-
-document.getElementById('planting-date').addEventListener('change', (e) => {
-    const start = new Date(e.target.value);
-    const diff = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
-    document.getElementById('days-elapsed').innerText = diff > 0 ? diff : 0;
-    document.getElementById('avg-temp').innerText = '68°F';
+    // Fleet
+    const fleet = [
+        { id: 'TR-101', type: '8R Tractor', status: 'Active', fuel: '85%' },
+        { id: 'CB-402', type: 'S700 Combine', status: 'Maintenance', fuel: '12%' }
+    ];
+    document.querySelector('#machineryTable tbody').innerHTML = fleet.map(m => 
+        `<tr><td>${m.id}</td><td>${m.type}</td><td>${m.status}</td><td>${m.fuel}</td></tr>`
+    ).join('');
 });
