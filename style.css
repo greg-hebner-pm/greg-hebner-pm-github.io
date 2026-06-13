@@ -1,0 +1,6 @@
+body { background-color: #121212; color: #e0e0e0; font-family: sans-serif; margin: 0; }
+header { background-color: #2e7d32; color: #fff; padding: 1rem; text-align: center; }
+#map { height: 400px; width: 100%; }
+.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 20px; }
+.card { background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+footer { text-align: center; padding: 20px; color: #777; }
