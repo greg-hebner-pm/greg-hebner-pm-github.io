@@ -1,37 +1,235 @@
-body { background-color: #121212; color: #e0e0e0; font-family: sans-serif; margin: 0; }
-.navbar { background-color: #2e7d32; color: #ffeb3b; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
-.logo { height: 50px; width: auto; }
-.titles h1 { margin: 0; font-size: 1.5rem; }
-.titles p { margin: 0; font-size: 0.8rem; }
-.user-info { text-align: right; font-size: 0.8rem; }
-#map { height: 400px; width: 100%; position: relative; }
-#gps-coords { background: rgba(0,0,0,0.7); color: white; position: absolute; bottom: 10px; left: 10px; padding: 5px; z-index: 1000; }
-.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; padding: 20px; }
-.card { background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; }
-.quick-links button { background: #333; color: white; border: none; padding: 5px; margin: 2px; cursor: pointer; }
-footer { text-align: center; padding: 20px; background: #000; color: #777; }
-body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
-.navbar { background-color: #2e7d32; color: #ffeb3b; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-.header-left { display: flex; align-items: center; }
-.logo { height: 65px; width: auto; margin-right: 25px; }
-.titles h1 { margin: 0; font-size: 1.6rem; color: #ffeb3b; }
-.titles p { margin: 0; font-size: 0.85rem; color: #ffeb3b; font-weight: bold; }
-.user-info { text-align: right; }
-.user-info p { margin: 0; font-size: 0.95rem; font-weight: bold; }
-#map-container { position: relative; width: 100%; height: 450px; border-bottom: 2px solid #333; }
-#map { height: 100%; width: 100%; }
-#gps-coords { position: absolute; bottom: 15px; left: 15px; background: rgba(0, 0, 0, 0.75); color: #fff; padding: 6px 12px; border-radius: 4px; z-index: 1000; font-family: monospace; border: 1px solid #555; }
-.dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 25px; max-width: 1400px; margin: 0 auto; }
-.card { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-.full-width { grid-column: span 3; }
-.separator { border: 0; border-top: 1px solid #444; margin: 15px 0; }
-.metric-section { padding: 5px 0; }
-.weather-main, .weather-details { margin-bottom: 12px; }
-.forecast-placeholder { font-style: italic; color: #888; margin-top: 15px; padding: 10px; background: #252525; border-radius: 5px; }
-.quick-links { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-.quick-links button { background: #388e3c; color: white; border: none; padding: 10px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-.quick-links button:hover { background: #45a049; }
-#gdd-graph-placeholder { height: 150px; background: #252525; border: 1px dashed #555; display: flex; align-items: center; justify-content: center; color: #666; margin-top: 15px; }
-footer { text-align: center; padding: 25px; background: #000; color: #666; font-size: 0.85rem; }
-footer a { color: #2e7d32; text-decoration: none; }
-footer a:hover { text-decoration: underline; }
+/* General Styles */
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+}
+
+.navbar {
+    background-color: #2e7d32;
+    color: #ffeb3b;
+    padding: 10px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 65px;
+    width: auto;
+    margin-right: 25px;
+}
+
+.titles h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #ffeb3b;
+}
+
+.titles p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #ffeb3b;
+    font-weight: bold;
+}
+
+.user-info {
+    text-align: right;
+}
+
+.user-info p {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+
+/* Map Container */
+#map-container {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    border-bottom: 2px solid #333;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+#gps-coords {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    z-index: 1000;
+}
+
+/* Dashboard Grid */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Card Styles */
+.card {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #4CAF50;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.card h4 {
+    margin: 10px 0;
+    color: #888;
+}
+
+/* Field Metrics Table */
+.metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.metrics-table th, .metrics-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #333;
+}
+
+.metrics-table th {
+    color: #888;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.metrics-table td {
+    font-size: 0.9rem;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #333;
+    margin: 15px 0;
+}
+
+/* Weather Forecast List */
+.forecast-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.forecast-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.forecast-item:last-child {
+    border-bottom: none;
+}
+
+.forecast-day {
+    font-weight: bold;
+    width: 90px;
+}
+
+.forecast-condition {
+    flex-grow: 1;
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.forecast-temps {
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.high { color: #ff5252; margin-right: 5px; }
+.low { color: #448aff; }
+
+/* GDD Calculator Controls */
+.gdd-controls {
+    margin-top: 20px;
+}
+
+.input-group, .select-group {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-group input, .select-group select {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    flex-grow: 1;
+}
+
+#save-field-btn {
+    padding: 8px 15px;
+    background-color: #2e7d32;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#save-field-btn:hover {
+    background-color: #388e3c;
+}
+
+.chart-container {
+    height: 200px;
+    margin-bottom: 15px;
+}
+
+/* AI Insights */
+#ai-insights {
+    line-height: 1.6;
+}
+
+#ai-insights strong {
+    color: #ffeb3b;
+}
+
+#ai-insights em {
+    color: #888;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+}
