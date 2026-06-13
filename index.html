@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gregory J. Hebner | Product Manager</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333; background-color: #f4f4f4; }
-        header { background-color: #3A6B1A; color: #FFD700; padding: 30px 20px; text-align: center; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; }
-        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
-        h2 { color: #3A6B1A; border-bottom: 2px solid #3A6B1A; padding-bottom: 10px; }
-    </style>
+    <title>The Green Tractor Company | Field Intelligence</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
@@ -19,29 +14,36 @@
         <p>Field Intelligence Platform | Engineering & Product Leadership</p>
     </header>
 
-    <div class="container">
-        <h2>Professional Profile</h2>
-        <p>Product Manager with a focus on commercial hardware, wireless ecosystems, and NPI. Passionate about bridging the gap between complex physical machinery and intuitive digital analysis.</p>
+    <div id="map"></div>
 
-        <div class="card-grid">
-            <div class="card">
-                <h3>Core Competencies</h3>
-                <ul>
-                    <li>Geospatial Analysis & Strategy</li>
-                    <li>Value Engineering (AVS Certified)</li>
-                    <li>AI-Powered Customer Experiences</li>
-                    <li>NPI & Lifecycle Management</li>
-                </ul>
-            </div>
-            <div class="card">
-                <h3>Technical Interests</h3>
-                <ul>
-                    <li>Precision Agriculture Systems</li>
-                    <li>Wireless Ecosystem Integration</li>
-                    <li>Human-Centered Design</li>
-                </ul>
-            </div>
+    <div class="dashboard">
+        <div class="card" id="field-metrics">
+            <h3>Field Metrics</h3>
+            <p id="acreage">Draw a field to calculate acreage.</p>
+        </div>
+        <div class="card">
+            <h3>Live Weather</h3>
+            <p>79°F | Clear Sky</p>
+            <p>Soil Temp: 101°F | Wind: 11 mph</p>
+        </div>
+        <div class="card">
+            <h3>GDD Calculator</h3>
+            <p>Accumulated: 810 GDD</p>
+            <p>Target: 2,700 (Corn)</p>
+        </div>
+        <div class="card" id="ai-agent">
+            <h3>AI Agronomy Agent</h3>
+            <div id="chat-history"></div>
+            <input type="text" id="user-input" placeholder="Ask a farming question...">
         </div>
     </div>
+
+    <footer>
+        <p>Built for Precision Agriculture | <a href="#">LinkedIn</a> | © 2026</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
