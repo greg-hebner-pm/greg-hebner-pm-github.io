@@ -9,36 +9,87 @@
 </head>
 <body>
     <header class="navbar">
-        <img src="logo.png" alt="Company Logo" class="logo">
-        <div class="titles">
-            <h1>The Green Tractor Company</h1>
-            <p>FIELD INTELLIGENCE PLATFORM</p>
+        <div class="header-left">
+            <img src="logo.png" alt="Company Logo" class="logo">
+            <div class="titles">
+                <h1>The Green Tractor Company</h1>
+                <p>FIELD INTELLIGENCE PLATFORM</p>
+            </div>
         </div>
         <div class="user-info">
             <p><strong>Gregory J. Hebner</strong></p>
-            <p>Product Manager – Physical & Digital Hardware</p>
+            <p>Product Manager - Physical & Digital Hardware</p>
         </div>
     </header>
 
-    <div id="map"></div>
-    <div id="gps-coords">Lat: 0.0, Lon: 0.0</div>
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="gps-coords">Lat: 38.8602, Lon: -104.8801</div>
+    </div>
 
     <div class="dashboard">
-        <div class="card"><h3>Field Metrics</h3><div id="metrics-data">Draw a field to begin.</div></div>
-        <div class="card"><h3>Live Weather</h3><div id="weather-data">Loading...</div></div>
-        <div class="card"><h3>GDD Calculator</h3><div id="gdd-data">Select a field.</div></div>
-        <div class="card" id="ai-agent">
+        <div class="card" id="field-metrics">
+            <h3>Field Metrics</h3>
+            <div id="metrics-data">
+                <div class="metric-section">
+                    <p>Acreage: <span id="acreage">--</span></p>
+                </div>
+                <hr class="separator">
+                <div class="metric-section">
+                    <p>Perimeter: <span id="perimeter">--</span> miles</p>
+                </div>
+                <hr class="separator">
+                <div class="metric-section">
+                    <p>Machinery: <span id="machinery">--</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="card" id="live-weather">
+            <h3>Live Weather</h3>
+            <div id="weather-data">
+                <div class="weather-main">
+                    <p>Temp: <span id="temp">72°F</span></p>
+                    <p>Feels Like: <span id="feels-like">70°F</span></p>
+                </div>
+                <div class="weather-details">
+                    <p>Precip %: <span id="precip-prob">10%</span></p>
+                    <p>Forecasted Amount: <span id="precip-amount">0.0"</span></p>
+                    <p>Wind: <span id="wind">5 mph NW</span></p>
+                </div>
+                <div id="forecast" class="forecast-placeholder">7-Day Forecast: Sunny | Partly Cloudy | Cloudy | Rain | Sunny | Sunny | Clear</div>
+            </div>
+        </div>
+        <div class="card" id="gdd-calculator">
+            <h3>GDD Calculator</h3>
+            <div id="gdd-data">
+                <p>Crop Type: 
+                    <select id="crop-type">
+                        <option value="corn">Corn</option>
+                        <option value="soybeans">Soybeans</option>
+                    </select>
+                </p>
+                <p>Planting Date: <input type="date" id="planting-date"></p>
+                <p>Days Elapsed: <span id="days-elapsed">--</span></p>
+                <p>Avg Temp: <span id="avg-temp">--</span></p>
+                <div id="gdd-graph-placeholder">GDD Growth Curve Placeholder</div>
+            </div>
+        </div>
+        <div class="card full-width" id="ai-agent">
             <h3>AI Agronomy Agent</h3>
             <div class="quick-links">
                 <button onclick="askAI('spray window')">Spray Window</button>
                 <button onclick="askAI('nitrogen timing')">Nitrogen Timing</button>
                 <button onclick="askAI('soil readiness')">Soil Readiness</button>
+                <button onclick="askAI('harvest window')">Harvest Window</button>
+                <button onclick="askAI('pest pressure')">Pest Pressure</button>
             </div>
             <div id="chat-history"></div>
             <input type="text" id="user-input" placeholder="Ask a farming question...">
         </div>
     </div>
-    <footer>Built for Precision Agriculture | <a href="https://www.linkedin.com/in/greghebner">LinkedIn</a> | © 2026</footer>
+
+    <footer>Built for Precision Agriculture | <a href="https://www.linkedin.com/in/greghebner">LinkedIn</a> | &copy; 2026</footer>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="script.js"></script>
