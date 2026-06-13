@@ -107,26 +107,26 @@ body {
     color: #888;
 }
 
-/* Field Metrics Table */
-.metrics-table {
+/* Machinery Table */
+.machinery-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
-.metrics-table th, .metrics-table td {
+.machinery-table th, .machinery-table td {
     text-align: left;
     padding: 10px;
     border-bottom: 1px solid #333;
 }
 
-.metrics-table th {
+.machinery-table th {
     color: #888;
     font-size: 0.8rem;
     text-transform: uppercase;
 }
 
-.metrics-table td {
+.machinery-table td {
     font-size: 0.9rem;
 }
 
@@ -136,7 +136,7 @@ hr {
     margin: 15px 0;
 }
 
-/* Weather Forecast List */
+/* Forecast List */
 .forecast-list {
     list-style: none;
     padding: 0;
@@ -179,14 +179,13 @@ hr {
     margin-top: 20px;
 }
 
-.input-group, .select-group {
+.field-save-group, .field-select-group {
     margin-bottom: 15px;
     display: flex;
     gap: 10px;
-    align-items: center;
 }
 
-.input-group input, .select-group select {
+.field-save-group input, .field-select-group select {
     background: #2a2a2a;
     border: 1px solid #444;
     color: #fff;
