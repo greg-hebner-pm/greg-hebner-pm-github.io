@@ -2,46 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Green Tractor Company | Field Intelligence</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>The Green Tractor Company</h1>
-        <p>Field Intelligence Platform | Engineering & Product Leadership</p>
+    <header class="navbar">
+        <img src="logo.png" alt="Company Logo" class="logo">
+        <div class="titles">
+            <h1>The Green Tractor Company</h1>
+            <p>FIELD INTELLIGENCE PLATFORM</p>
+        </div>
+        <div class="user-info">
+            <p><strong>Gregory J. Hebner</strong></p>
+            <p>Product Manager – Physical & Digital Hardware</p>
+        </div>
     </header>
 
     <div id="map"></div>
+    <div id="gps-coords">Lat: 0.0, Lon: 0.0</div>
 
     <div class="dashboard">
-        <div class="card" id="field-metrics">
-            <h3>Field Metrics</h3>
-            <p id="acreage">Draw a field to calculate acreage.</p>
-        </div>
-        <div class="card">
-            <h3>Live Weather</h3>
-            <p>79°F | Clear Sky</p>
-            <p>Soil Temp: 101°F | Wind: 11 mph</p>
-        </div>
-        <div class="card">
-            <h3>GDD Calculator</h3>
-            <p>Accumulated: 810 GDD</p>
-            <p>Target: 2,700 (Corn)</p>
-        </div>
+        <div class="card"><h3>Field Metrics</h3><div id="metrics-data">Draw a field to begin.</div></div>
+        <div class="card"><h3>Live Weather</h3><div id="weather-data">Loading...</div></div>
+        <div class="card"><h3>GDD Calculator</h3><div id="gdd-data">Select a field.</div></div>
         <div class="card" id="ai-agent">
             <h3>AI Agronomy Agent</h3>
+            <div class="quick-links">
+                <button onclick="askAI('spray window')">Spray Window</button>
+                <button onclick="askAI('nitrogen timing')">Nitrogen Timing</button>
+                <button onclick="askAI('soil readiness')">Soil Readiness</button>
+            </div>
             <div id="chat-history"></div>
             <input type="text" id="user-input" placeholder="Ask a farming question...">
         </div>
     </div>
-
-    <footer>
-        <p>Built for Precision Agriculture | <a href="#">LinkedIn</a> | © 2026</p>
-    </footer>
-
+    <footer>Built for Precision Agriculture | <a href="https://www.linkedin.com/in/greghebner">LinkedIn</a> | © 2026</footer>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="script.js"></script>
