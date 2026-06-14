@@ -1,16 +1,77 @@
-:root { --primary-green: #2d5a27; --accent-yellow: #f4d03f; --bg-light: #f8f9fa; }
-body { font-family: sans-serif; margin: 0; background-color: var(--bg-light); }
-.navbar { background-color: var(--primary-green); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--accent-yellow); }
-.header-left { display: flex; align-items: center; gap: 1rem; }
-.logo { height: 60px; }
-.titles h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; }
-.titles p { margin: 0; font-size: 0.8rem; color: var(--accent-yellow); }
-.user-info { text-align: right; }
-.dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; padding: 2rem; max-width: 1400px; margin: 0 auto; }
-.card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-green); }
-#map { height: 400px; border-radius: 4px; }
+:root { 
+    --primary-green: #2d5a27; 
+    --accent-yellow: #f4d03f; 
+    --bg-light: #f8f9fa; 
+}
+
+body { 
+    font-family: sans-serif; 
+    margin: 0; 
+    background-color: var(--bg-light); 
+}
+
+.navbar { 
+    background-color: var(--primary-green); 
+    color: white; 
+    padding: 1rem 2rem; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 4px solid var(--accent-yellow); 
+}
+
+.header-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+}
+
+.logo { 
+    height: 60px; 
+}
+
+.titles h1 { 
+    margin: 0; 
+    font-size: 1.5rem; 
+    text-transform: uppercase; 
+}
+
+.titles p { 
+    margin: 0; 
+    font-size: 0.8rem; 
+    color: var(--accent-yellow); 
+}
+
+.user-info { 
+    text-align: right; 
+}
+
+.dashboard-grid { 
+    display: grid; 
+    grid-template-columns: 2fr 1fr; 
+    gap: 1.5rem; 
+    padding: 2rem; 
+    max-width: 1400px; 
+    margin: 0 auto; 
+}
+
+.card { 
+    background: white; 
+    padding: 1.5rem; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    border-top: 4px solid var(--primary-green); 
+}
+
+#map { 
+    height: 400px; 
+    border-radius: 4px; 
+}
+
+/* Table and Metrics Styling */
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+
 #weatherTable { 
     font-size: 0.75rem; 
     width: 100%; 
@@ -21,11 +82,36 @@ th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
     background-color: var(--primary-green); 
     color: white; 
     padding: 6px 4px; 
-    font-weight: 600;
+    font-weight: 600; 
 }
 #weatherTable td { 
     padding: 6px 4px; 
     border-bottom: 1px solid #eee; 
     text-align: center; 
-    white-space: nowrap;
+    white-space: nowrap; 
+}
+
+.metric-row { margin-bottom: 0.5rem; font-size: 0.9rem; }
+
+.metrics-card h6 { 
+    color: var(--primary-green); 
+    margin-top: 1rem; 
+    margin-bottom: 0.5rem; 
+    font-size: 0.85rem; 
+}
+
+#machineryTable { 
+    font-size: 0.75rem; 
+    border-collapse: collapse; 
+    width: 100%; 
+}
+#machineryTable td { 
+    padding: 4px; 
+    border-bottom: 1px solid #eee; 
+    text-align: left; 
+}
+#machineryTable th { 
+    padding: 4px; 
+    border-bottom: 2px solid #eee; 
+    text-align: left; 
 }
