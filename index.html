@@ -30,12 +30,29 @@
         </section>
 
         <section class="card forecast-card">
-            <h2>7-Day Forecast</h2>
-            <div id="forecast-data">
-                <p>Mon: Sunny (78°/62°)</p><p>Tue: P. Cloudy (75°/60°)</p><p>Wed: Cloudy (70°/58°)</p>
-                <p>Thu: Rain (65°/55°)</p><p>Fri: Sunny (72°/58°)</p><p>Sat: Sunny (74°/60°)</p><p>Sun: Clear (76°/61°)</p>
-            </div>
-        </section>
+    <h2>7-Day Forecast</h2>
+    <table id="weatherTable">
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Condition</th>
+                <th>Temp (H/L)</th>
+                <th>Precip %</th>
+                <th>Amount</th>
+                <th>Wind</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Mon</td><td>Sunny</td><td>78°/62°</td><td>5%</td><td>0.0"</td><td>5 mph NE</td></tr>
+            <tr><td>Tue</td><td>P. Cloudy</td><td>75°/60°</td><td>10%</td><td>0.0"</td><td>8 mph E</td></tr>
+            <tr><td>Wed</td><td>Cloudy</td><td>70°/58°</td><td>20%</td><td>0.1"</td><td>10 mph N</td></tr>
+            <tr><td>Thu</td><td>Rain</td><td>65°/55°</td><td>80%</td><td>0.5"</td><td>12 mph NW</td></tr>
+            <tr><td>Fri</td><td>Sunny</td><td>72°/58°</td><td>0%</td><td>0.0"</td><td>6 mph W</td></tr>
+            <tr><td>Sat</td><td>Sunny</td><td>74°/60°</td><td>0%</td><td>0.0"</td><td>4 mph S</td></tr>
+            <tr><td>Sun</td><td>Clear</td><td>76°/61°</td><td>0%</td><td>0.0"</td><td>5 mph S</td></tr>
+        </tbody>
+    </table>
+</section>
 
         <section class="card gdd-card">
             <h2>GDD Growth Curve</h2>
