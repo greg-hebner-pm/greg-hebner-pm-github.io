@@ -11,3 +11,6 @@ body { font-family: sans-serif; margin: 0; background-color: var(--bg-light); }
 #map { height: 400px; border-radius: 4px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+#weatherTable { font-size: 0.85rem; }
+#weatherTable th { background-color: var(--primary-green); color: white; padding: 8px; }
+#weatherTable td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
