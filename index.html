@@ -27,80 +27,56 @@
         <section class="card map-card">
             <div id="map"></div>
             <div id="gps-coords">Lat: 38.8602, Lon: -104.8801</div>
-<section class="card forecast-card">
-        <h2>7-Day Forecast</h2>
-        <table id="weatherTable">
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th>Condition</th>
-                    <th>Temp (H/L)</th>
-                    <th>Precip %</th>
-                    <th>Amount</th>
-                    <th>Wind</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>Mon</td><td>Sunny</td><td>78°/62°</td><td>5%</td><td>0.0"</td><td>5 mph NE</td></tr>
-                <tr><td>Tue</td><td>P. Cloudy</td><td>75°/60°</td><td>10%</td><td>0.0"</td><td>8 mph E</td></tr>
-                <tr><td>Wed</td><td>Cloudy</td><td>70°/58°</td><td>20%</td><td>0.1"</td><td>10 mph N</td></tr>
-                <tr><td>Thu</td><td>Rain</td><td>65°/55°</td><td>80%</td><td>0.5"</td><td>12 mph NW</td></tr>
-                <tr><td>Fri</td><td>Sunny</td><td>72°/58°</td><td>0%</td><td>0.0"</td><td>6 mph W</td></tr>
-                <tr><td>Sat</td><td>Sunny</td><td>74°/60°</td><td>0%</td><td>0.0"</td><td>4 mph S</td></tr>
-                <tr><td>Sun</td><td>Clear</td><td>76°/61°</td><td>0%</td><td>0.0"</td><td>5 mph S</td></tr>
-            </tbody>
-        </table>
-    </section>
+        </section>
 
-    <section class="card gdd-card">
-        <h2>GDD Growth Curve</h2>
-        <canvas id="gddChart"></canvas>
-    </section>
+        <section class="card forecast-card">
+            <h2>7-Day Forecast</h2>
+            <table id="weatherTable">
+                <thead>
+                    <tr><th>Day</th><th>Condition</th><th>Temp (H/L)</th><th>Precip %</th><th>Amount</th><th>Wind</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Mon</td><td>Sunny</td><td>78°/62°</td><td>5%</td><td>0.0"</td><td>5 mph NE</td></tr>
+                    <tr><td>Tue</td><td>P. Cloudy</td><td>75°/60°</td><td>10%</td><td>0.0"</td><td>8 mph E</td></tr>
+                    <tr><td>Wed</td><td>Cloudy</td><td>70°/58°</td><td>20%</td><td>0.1"</td><td>10 mph N</td></tr>
+                    <tr><td>Thu</td><td>Rain</td><td>65°/55°</td><td>80%</td><td>0.5"</td><td>12 mph NW</td></tr>
+                    <tr><td>Fri</td><td>Sunny</td><td>72°/58°</td><td>0%</td><td>0.0"</td><td>6 mph W</td></tr>
+                    <tr><td>Sat</td><td>Sunny</td><td>74°/60°</td><td>0%</td><td>0.0"</td><td>4 mph S</td></tr>
+                    <tr><td>Sun</td><td>Clear</td><td>76°/61°</td><td>0%</td><td>0.0"</td><td>5 mph S</td></tr>
+                </tbody>
+            </table>
+        </section>
 
-    <section class="card fields-card">
-        <h2>Manage Fields</h2>
-        <div class="input-group">
-            <input type="text" id="fieldName" placeholder="Enter Field Name">
-            <button id="saveField">Save Field</button>
-        </div>
-        <ul id="fieldList"></ul>
-    </section>
+        <section class="card gdd-card">
+            <h2>GDD Growth Curve</h2>
+            <canvas id="gddChart"></canvas>
+        </section>
 
-   <section class="card metrics-card">
-        <h2>Field Metrics</h2>
-        <div class="metric-row">
-            <strong>Total Field Area:</strong> 160 acres
-        </div>
-        <div class="metric-row">
-            <strong>Perimeter:</strong> — miles
-        </div>
-        <hr>
-        <h6>Machinery Execution Estimates (85% efficiency)</h6>
-     <section class="card metrics-card">
-        <h2>Field Metrics</h2>
-        <div class="metric-row">
-            <strong>Total Field Area:</strong> 160 acres
-        </div>
-        <div class="metric-row">
-            <strong>Perimeter:</strong> — miles
-        </div>
-        <hr>
-        <h6>Machinery Execution Estimates (85% efficiency)</h6>
-        <table id="machineryTable">
-            <thead>
-                <tr>
-                    <th>Equipment</th>
-                    <th>Est. Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>24-Row Planter (60 ft @ 5.5 mph)</td><td>3011h 46m</td></tr>
-                <tr><td>S7 Combine (40 ft @ 4.5 mph)</td><td>5521h 34m</td></tr>
-                <tr><td>See & Spray Sprayer (120 ft @ 12 mph)</td><td>690h 12m</td></tr>
-            </tbody>
-        </table>
-    </section>
+        <section class="card fields-card">
+            <h2>Manage Fields</h2>
+            <div class="input-group">
+                <input type="text" id="fieldName" placeholder="Enter Field Name">
+                <button id="saveField">Save Field</button>
+            </div>
+            <ul id="fieldList"></ul>
+        </section>
 
+        <section class="card metrics-card">
+            <h2>Field Metrics</h2>
+            <div class="metric-row"><strong>Total Field Area:</strong> 160 acres</div>
+            <div class="metric-row"><strong>Perimeter:</strong> — miles</div>
+            <hr>
+            <h6>Machinery Execution Estimates (85% efficiency)</h6>
+            <table id="machineryTable">
+                <thead><tr><th>Equipment</th><th>Est. Time</th></tr></thead>
+                <tbody>
+                    <tr><td>24-Row Planter (60 ft @ 5.5 mph)</td><td>3011h 46m</td></tr>
+                    <tr><td>S7 Combine (40 ft @ 4.5 mph)</td><td>5521h 34m</td></tr>
+                    <tr><td>See & Spray Sprayer (120 ft @ 12 mph)</td><td>690h 12m</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>
