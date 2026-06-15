@@ -1,1 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Green Tractor Company — Field Intelligence Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════ TOKENS ═══════════ */
+:root {
+  --gf:   #1E3A0F;
+  --gm:   #3A6B1A;
+  --gl:   #6DAF3A;
+  --ag:   #C8860A;
+  --al:   #F0B429;
+  --c1:   #14171A;
+  --c2:   #1C2128;
+  --c3:   #252D36;
+  --c4:   #2E3844;
+  --c5:   #3A4554;
+  --bd:   rgba(255,255,255,0.08);
+  --td:   rgba(255,255,255,0.40);
+  --tm:   rgba(255,255,255,0.68);
+  --tb:   rgba(255,255,255,0.92);
+}
 
+/* ═══════════ RESET ═══════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--c1);
+  color:var(--tb);
+  min-height:100%;
+}
+.serif{font-family:'DM Serif Display',serif;}
+
+/* ═══════════ HEADER ═══════════ */
+#app-header{
+  background:var(--gf);
+  background-image:repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(255,255,255,0.022) 48px,rgba(255,255,255,0.022) 50px);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.header-inner{
+  max-width:1400px;margin:0 auto;
+  padding:18px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+}
+.user-block{display:flex;flex-direction:column;align-items:flex-end;text-align:right;}
+.user-name{font-family:'DM Serif Display',serif;font-size:24px;color:#fff;line-height:1.2;}
+.user-title{font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:0.03em;margin-top:4px;}
+.brand-wrap{display:flex;align-items:center;gap:16px;}
+.brand-logo{width:80px;height:auto;object-fit:contain;}
+.brand-name{font-family:'DM Serif Display',serif;font-size:23px;color:#fff;letter-spacing:0.01em;line-height:1.15;}
+.brand-sub{font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px;}
+
+/* ═══════════ PANEL SYSTEM ═══════════ */
+.panel{
+  background:var(--c3);
+  border:1px solid var(--bd);
+  border-radius:10px;
+  overflow:hidden;
+}
+.panel-hdr{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 14px;
+  background:var(--c4);
+  border-bottom:1px solid var(--bd);
+}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.panel-label{
+  font-size:10px;font-weight:700;letter-spacing:0.07em;
+  text-transform:uppercase;color:var(--tm);
+}
+.panel-body{padding:14px;}
+
+/* ═══════════ MAP ═══════════ */
+#field-map{height:440px;width:100%;}
+.leaflet-container{background:#1a2a10!important;}
+
+#map-search-overlay{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  z-index:1000;display:flex;gap:6px;
+  width:min(460px,90%);
+}
+#map-search-input{
+  flex:1;font-family:'DM Sans',sans-serif;font-size:12px;
+  background:rgba(20,23,26,0.88);
+  border:1px solid rgba(109,175,58,0.4);
+  border-radius:7px;color:var(--tb);
+  padding:8px 13px;outline:none;
+  backdrop-filter:blur(6px);
+  transition:border-color 0.15s;
+}
+#map-search-input:focus{border-color:var(--gl);}
+#map-search-input::placeholder{color:var(--td);}
+.map-btn{
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;
+  padding:8px 14px;border-radius:7px;
+  border:1px solid rgba(109,175,58,0.4);
+  background:rgba(20,23,26,0.88);color:var(--gl);
+  cursor:pointer;backdrop-filter:blur(6px);transition:all 0.15s;
+  white-space:nowrap;
+}
+.map-btn:hover{background:var(--gm);color:#fff;border-color:var(--gm);}
+.map-btn.active{background:var(--gm);color:#fff;border-color:var(--gm);}
+.map-btn.danger{border-color:rgba(200,90,70,0.5);color:#e07060;}
+.map-btn.danger:hover{background:rgba(200,90,70,0.2);}
+
+#map-coords-badge{
+  position:absolute;bottom:10px;left:10px;z-index:1000;
+  background:rgba(20,23,26,0.82);border:1px solid var(--bd);
+  border-radius:5px;padding:4px 9px;font-size:10px;color:var(--td);
+  backdrop-filter:blur(4px);pointer-events:none;
+}
+#draw-status-badge{
+  position:absolute;bottom:10px;right:10px;z-index:1000;
+  background:rgba(58,107,26,0.85);border:1px solid rgba(109,175,58,0.4);
+  border-radius:5px;padding:4px 9px;font-size:10px;color:#fff;
+  backdrop-filter:blur(4px);pointer-events:none;display:none;
+}
+
+/* ═══════════ METRICS TILES ═══════════ */
+.metric-tile{
+  background:var(--c4);border:1px solid var(--bd);
+  border-radius:8px;padding:12px 14px;
+}
+.metric-tile .mlab{font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);margin-bottom:6px;}
+.metric-tile .mval{font-size:26px;font-weight:300;color:var(--gl);line-height:1;}
+.metric-tile .msub{font-size:10px;color:var(--td);margin-top:2px;}
+
+.machinery-table{width:100%;border-collapse:collapse;}
+.machinery-table th{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);}
+.machinery-table td{font-size:12px;color:var(--tm);padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.machinery-table td.val{color:var(--tb);font-weight:600;text-align:right;}
+.machinery-table tr:last-child td{border-bottom:none;}
+.eq-name{font-size:12px;font-weight:600;color:var(--tb);}
+.eq-spec{font-size:10px;color:var(--td);}
+
+/* ═══════════ WEATHER FORECAST TABLE ═══════════ */
+.forecast-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.forecast-table th{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap;}
+.forecast-table td{font-size:12px;color:var(--tm);padding:9px 8px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;font-variant-numeric:tabular-nums;}
+.forecast-table tr:last-child td{border-bottom:none;}
+.forecast-table th:nth-child(1),.forecast-table td:nth-child(1){width:14%;}
+.forecast-table th:nth-child(2),.forecast-table td:nth-child(2){width:28%;}
+.forecast-table th:nth-child(3),.forecast-table td:nth-child(3){width:28%;}
+.forecast-table th:nth-child(4),.forecast-table td:nth-child(4){width:15%;}
+.forecast-table th:nth-child(5),.forecast-table td:nth-child(5){width:15%;}
+
+.fc-row{cursor:pointer;transition:background 0.12s;}
+.fc-row:hover{background:rgba(255,255,255,0.03);}
+.fc-row.selected{background:rgba(109,175,58,0.10);}
+.fc-day{font-size:12px;font-weight:600;color:var(--tb);}
+.fc-cond{font-size:11px;color:var(--td);white-space:nowrap;}
+.fc-temps{display:grid;grid-template-columns:32px 32px;column-gap:6px;align-items:baseline;justify-content:end;text-align:right;font-variant-numeric:tabular-nums;}
+.fc-temps .hi{font-size:12px;font-weight:600;color:var(--gl);}
+.fc-temps .lo{font-size:12px;font-weight:400;color:var(--td);}
+.fc-temps .feels{grid-column:1 / -1;color:var(--td);font-weight:400;font-size:10px;margin-top:1px;text-align:right;}
+.fc-precip,.fc-wind{font-size:11px;color:var(--tm);text-align:right;line-height:1.5;}
+.fc-precip .sub,.fc-wind .sub{display:block;color:var(--td);font-size:10px;}
+.w-pill{background:var(--c4);border:1px solid var(--bd);border-radius:7px;padding:8px 10px;}
+.w-pill .wl{font-size:10px;color:var(--td);margin-bottom:3px;}
+.w-pill .wv{font-size:13px;font-weight:600;color:var(--tb);}
+
+/* ═══════════ GDD ═══════════ */
+.gdd-track{background:var(--c5);border-radius:99px;height:8px;overflow:hidden;}
+.gdd-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gm),var(--ag));transition:width 0.5s ease;}
+
+/* ═══════════ DARK INPUTS ═══════════ */
+.di{
+  font-family:'DM Sans',sans-serif;font-size:12px;
+  background:var(--c4);border:1px solid var(--bd);
+  border-radius:7px;color:var(--tb);padding:7px 10px;
+  outline:none;width:100%;transition:border-color 0.15s;
+}
+.di:focus{border-color:rgba(109,175,58,0.5);}
+.di option{background:var(--c3);}
+.di-label{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);display:block;margin-bottom:4px;}
+
+/* ═══════════ SPINNER ═══════════ */
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{animation:spin 1s linear infinite;}
+
+/* ═══════════ FOOTER ═══════════ */
+.soil{background:linear-gradient(135deg,#3d2a10,#5a3e20,#3d2a10);height:3px;}
+#app-footer{
+  position:relative;
+  padding:48px 20px;
+  min-height:160px;
+  background:
+    linear-gradient(180deg,rgba(8,14,4,0.35),rgba(8,14,4,0.75)),
+    url('cornfield.jpg') center 60% / cover no-repeat,
+    linear-gradient(180deg,#4a6b28 0%,#3a5e1f 45%,#2a4715 100%);
+  background-blend-mode:normal, normal, normal;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+#app-footer::before{
+  content:'';position:absolute;inset:0;
+  background-image:repeating-linear-gradient(105deg,transparent 0 10px, rgba(0,0,0,0.06) 10px 11px);
+  pointer-events:none;
+}
+.footer-inner{
+  position:relative;z-index:1;
+  max-width:1400px;margin:0 auto;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;
+}
+.footer-tagline{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;}
+.footer-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:4px;}
+
+/* ═══════════ UTILS ═══════════ */
+.section-wrap{max-width:1400px;margin:0 auto;padding:20px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr;}.grid-4{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.grid-4{grid-template-columns:1fr 1fr;}}
+.gap-sm{gap:10px;}
+.flex-col{display:flex;flex-direction:column;gap:10px;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     HEADER — Left: identity / Right: brand
+══════════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="header-inner">
+
+    <!-- Left: Brand -->
+    <div class="brand-wrap">
+      <img src="tractor-logo.png" alt="The Green Tractor Company logo" class="brand-logo" />
+      <div>
+        <div class="brand-name">The Green Tractor Company</div>
+        <div class="brand-sub">Field Intelligence Platform</div>
+      </div>
+    </div>
+
+    <!-- Right: Identity -->
+    <div class="user-block">
+      <div class="user-name">Gregory J. Hebner</div>
+      <div class="user-title">Product Manager — Mechanical &amp; Electronic Portfolios</div>
+    </div>
+
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════════ -->
+<main>
+  <div class="section-wrap">
+
+    <!-- Map Panel — full width with overlay search -->
+    <div class="panel" style="margin-bottom:16px;position:relative;">
+      <div class="panel-hdr" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="dot" style="background:var(--gl);"></div>
+          <span class="panel-label">Interactive Field Map</span>
+          <span id="map-loc-badge" style="font-size:10px;color:var(--td);margin-left:6px;"></span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="map-btn" id="draw-toggle-btn" onclick="toggleDraw()">✏ Draw Field</button>
+          <button class="map-btn" id="radius-toggle-btn" onclick="toggleRadius()">◎ Radius Field</button>
+          <button class="map-btn" id="save-field-btn" style="display:none;" onclick="saveField()">💾 Save Field</button>
+          <button class="map-btn danger" id="clear-field-btn" style="display:none;" onclick="clearField()">✕ Clear</button>
+        </div>
+      </div>
+
+      <!-- Map container (relative for overlays) -->
+      <div style="position:relative;">
+        <div id="field-map"></div>
+
+        <!-- Search overlay -->
+        <div id="map-search-overlay">
+          <input type="text" id="map-search-input"
+            placeholder="City, zip code, or GPS coords (lat, lon)…"
+            onkeydown="if(event.key==='Enter') mapSearch()" />
+          <button class="map-btn" onclick="mapSearch()">Search</button>
+        </div>
+
+        <!-- Coord badge -->
+        <div id="map-coords-badge">38.8338° N, 104.8214° W</div>
+
+        <!-- Draw status -->
+        <div id="draw-status-badge"></div>
+      </div>
+    </div>
+
+    <!-- Tip bar -->
+    <div style="font-size:11px;color:var(--td);padding:10px 14px;background:var(--c3);border:1px solid var(--bd);border-radius:8px;margin-bottom:16px;">
+      ⓘ <strong style="color:var(--tm);">Field Drawing:</strong> Click "Draw Field" then click the map to place polygon vertices, or use "Radius Field" to pick a center point and drag the radius. Click "Save Field" to store it for later, then recall it from the Field Metrics selector. Pan or search the map to relocate and refresh the forecast.
+    </div>
+
+    <!-- Weather / Field Metrics — split across width -->
+    <div class="grid-2" style="margin-bottom:16px;">
+
+      <!-- 7-Day Weather Forecast -->
+      <div class="panel">
+        <div class="panel-hdr" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="dot" style="background:#5B9BD5;"></div>
+            <span class="panel-label">7-Day Forecast</span>
+          </div>
+          <span style="font-size:10px;color:var(--td);" id="weather-loc">—</span>
+        </div>
+        <div class="panel-body">
+
+          <div id="w-loading" style="text-align:center;padding:24px 0;color:var(--td);font-size:12px;">
+            <svg class="spin" style="display:inline-block;margin-bottom:6px;" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><br/>Fetching…
+          </div>
+
+          <div id="w-data" style="display:none;">
+
+            <!-- 7-day table -->
+            <table class="forecast-table" id="forecast-table">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Conditions</th>
+                  <th style="text-align:right;">Temp (Hi/Lo · Feels)</th>
+                  <th style="text-align:right;">Precip</th>
+                  <th style="text-align:right;">Wind</th>
+                </tr>
+              </thead>
+              <tbody id="forecast-rows"></tbody>
+            </table>
+
+            <!-- Selected-day detail pills -->
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin:14px 0 8px;">
+              <span class="di-label" style="margin:0;" id="detail-day-lbl">Today's Conditions</span>
+              <span style="font-size:10px;color:var(--td);" id="w-updated">--</span>
+            </div>
+            <div class="grid-4 gap-sm">
+              <div class="w-pill"><div class="wl">☁ Cloud Cover</div><div class="wv" id="w-cloud">--</div></div>
+              <div class="w-pill"><div class="wl">💧 Dew Point</div><div class="wv" id="w-dewpoint">--</div></div>
+              <div class="w-pill"><div class="wl">🌫 Humidity</div><div class="wv" id="w-humidity">--</div></div>
+              <div class="w-pill"><div class="wl">⏱ Pressure</div><div class="wv" id="w-pressure">--</div></div>
+            </div>
+
+          </div>
+
+          <div id="w-error" style="display:none;font-size:12px;color:#e07060;padding:10px 0;">Could not fetch weather.</div>
+        </div>
+      </div>
+
+      <!-- Field Metrics -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="dot" style="background:var(--ag);"></div>
+          <span class="panel-label">Field Metrics</span>
+          <span id="field-src-label" style="margin-left:auto;font-size:10px;color:var(--td);font-style:italic;">sample 160 ac</span>
+        </div>
+        <div class="panel-body flex-col">
+
+          <!-- Field selector -->
+          <div>
+            <label class="di-label">Saved Fields</label>
+            <div style="display:flex;gap:8px;">
+              <select id="field-selector" class="di" onchange="loadField(this.value)">
+                <option value="">— Select a saved field —</option>
+              </select>
+              <button class="map-btn danger" style="flex-shrink:0;" onclick="deleteSelectedField()">🗑 Delete</button>
+            </div>
+          </div>
+
+          <!-- Acreage / Perimeter -->
+          <div class="grid-2 gap-sm">
+            <div class="metric-tile">
+              <div class="mlab">Total Field Area</div>
+              <div class="mval" id="acres-display">160</div>
+              <div class="msub">acres</div>
+            </div>
+            <div class="metric-tile">
+              <div class="mlab">Perimeter</div>
+              <div class="mval" id="perim-display">—</div>
+              <div class="msub">miles</div>
+            </div>
+          </div>
+
+          <!-- Crop type / planting date / days elapsed / hi/lo -->
+          <div class="grid-4 gap-sm">
+            <div>
+              <label class="di-label">Crop Type</label>
+              <select id="gdd-crop" class="di" onchange="calcGDD()">
+                <option value="corn">Corn</option>
+                <option value="soy">Soybeans</option>
+                <option value="wheat">Winter Wheat</option>
+                <option value="canola">Canola</option>
+              </select>
+            </div>
+            <div>
+              <label class="di-label">Planting Date</label>
+              <input type="date" id="gdd-plant" class="di" onchange="calcGDD()" />
+            </div>
+            <div class="metric-tile">
+              <div class="mlab">Days Elapsed</div>
+              <div class="mval" id="gdd-days-display" style="font-size:22px;">--</div>
+              <div class="msub">since planting</div>
+            </div>
+            <div class="metric-tile">
+              <div class="mlab">Ave Hi / Lo</div>
+              <div class="mval" style="font-size:18px;" id="gdd-hilo-display">--° / --°</div>
+              <div class="msub">°F, 7-day</div>
+            </div>
+          </div>
+
+          <!-- GDD bar -->
+          <div style="background:var(--c4);border:1px solid var(--bd);border-radius:8px;padding:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+              <span class="di-label" style="margin:0;">Season Progress (GDD)</span>
+              <span style="font-size:10px;color:var(--td);" id="gdd-status">—</span>
+            </div>
+            <div class="gdd-track"><div class="gdd-fill" id="gdd-bar" style="width:0%"></div></div>
+            <div style="font-size:10px;color:var(--td);margin-top:6px;display:flex;justify-content:space-between;">
+              <span>Planted: <span id="gdd-plant-lbl">--</span></span>
+              <span id="gdd-harvest-lbl">Est. harvest: --</span>
+            </div>
+          </div>
+
+          <!-- Machinery table -->
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);margin-bottom:8px;">Machinery Execution Estimates <span style="font-weight:400;font-style:italic;text-transform:none;letter-spacing:0;">(85% efficiency)</span></div>
+            <table class="machinery-table">
+              <thead><tr><th>Equipment</th><th>Description</th><th style="text-align:right;">Ave. Speed</th><th style="text-align:right;">Est. Time</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="eq-name">24-Row Planter</div></td>
+                  <td class="eq-spec">60 ft working width</td>
+                  <td class="val">5.5 mph</td>
+                  <td class="val" id="t-planter">—</td>
+                </tr>
+                <tr>
+                  <td><div class="eq-name">S7 Combine</div></td>
+                  <td class="eq-spec">40 ft header width</td>
+                  <td class="val">4.5 mph</td>
+                  <td class="val" id="t-combine">—</td>
+                </tr>
+                <tr>
+                  <td><div class="eq-name">See &amp; Spray™ Sprayer</div></td>
+                  <td class="eq-spec">120 ft boom width</td>
+                  <td class="val">12 mph</td>
+                  <td class="val" id="t-sprayer">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════ -->
+<div class="soil"></div>
+<footer id="app-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-tagline">Built for Performance Farming.</div>
+      <div class="footer-sub">The Green Tractor Company · Field Intelligence Platform</div>
+    </div>
+    <div style="display:flex;gap:16px;">
+    <a href="https://www.linkedin.com/in/greghebner/" target="_blank" style="font-size:15px;color:#fff;background:var(--ag);text-decoration:none;font-weight:700;padding:12px 24px;border-radius:99px;letter-spacing:0.02em;display:inline-flex;align-items:center;gap:8px;transition:background 0.15s;" onmouseover="this.style.background='#a06e08'" onmouseout="this.style.background='var(--ag)'">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      Connect on LinkedIn
+    </a>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ══════════════════════
+   MAP — Leaflet
+══════════════════════ */
+const DEFAULT_LAT = 38.8338, DEFAULT_LON = -104.8214;
+let activeLat = DEFAULT_LAT, activeLon = DEFAULT_LON;
+let drawMode = false, radiusMode = false;
+let drawnPts = [], drawnMarkers = [], drawnPolygon = null;
+let radiusCenter = null, radiusCircle = null, radiusCenterMarker = null;
+let mapWeatherTimer = null;
+let savedFields = {}; // name -> {type:'polygon'|'circle', pts/center+radius, acres, perim, lat, lon}
+let activeFieldName = null;
+
+const map = L.map('field-map', { zoomControl: true }).setView([DEFAULT_LAT, DEFAULT_LON], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 19,
+}).addTo(map);
+
+function goldMarker(latlng) {
+  return L.marker(latlng, {
+    icon: L.divIcon({
+      className:'',
+      html:`<div style="width:10px;height:10px;border-radius:50%;background:#F0B429;border:2px solid #fff;box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>`,
+      iconSize:[10,10], iconAnchor:[5,5],
+    })
+  });
+}
+
+map.on('moveend', () => {
+  const c = map.getCenter();
+  activeLat = c.lat; activeLon = c.lng;
+  document.getElementById('map-coords-badge').textContent =
+    `${activeLat.toFixed(4)}° N, ${Math.abs(activeLon).toFixed(4)}° W`;
+  clearTimeout(mapWeatherTimer);
+  mapWeatherTimer = setTimeout(() => fetchWeather(activeLat, activeLon, 'Map location'), 700);
+});
+
+/* ─── Polygon draw mode ─── */
+map.on('click', e => {
+  const latlng = [e.latlng.lat, e.latlng.lng];
+
+  if (drawMode) {
+    drawnPts.push(latlng);
+    drawnMarkers.push(goldMarker(e.latlng).addTo(map));
+    if (drawnPolygon) map.removeLayer(drawnPolygon);
+    if (drawnPts.length >= 3) {
+      drawnPolygon = L.polygon(drawnPts, {
+        color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
+      }).addTo(map);
+      const ac = calcAcres(drawnPts);
+      updateFieldMetrics(ac, 'drawn');
+      document.getElementById('save-field-btn').style.display = 'inline-block';
+    }
+    document.getElementById('draw-status-badge').textContent =
+      `✏ ${drawnPts.length} point${drawnPts.length!==1?'s':''} placed — keep clicking to add more`;
+    if (drawnPts.length === 1) {
+      document.getElementById('map-coords-badge').textContent =
+        `${latlng[0].toFixed(4)}° N, ${Math.abs(latlng[1]).toFixed(4)}° W`;
+    }
+    return;
+  }
+
+  if (radiusMode) {
+    if (!radiusCenter) {
+      radiusCenter = latlng;
+      radiusCenterMarker = goldMarker(e.latlng).addTo(map);
+      document.getElementById('draw-status-badge').textContent =
+        '◎ Center set — click again to set the radius';
+      document.getElementById('map-coords-badge').textContent =
+        `${latlng[0].toFixed(4)}° N, ${Math.abs(latlng[1]).toFixed(4)}° W`;
+    } else {
+      const radiusM = haverMiles(radiusCenter[0],radiusCenter[1],latlng[0],latlng[1]) * 1609.34;
+      if (radiusCircle) map.removeLayer(radiusCircle);
+      radiusCircle = L.circle(radiusCenter, {
+        radius: radiusM, color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
+      }).addTo(map);
+      const acres = Math.PI * Math.pow(radiusM,2) * 0.000247105;
+      const perimMiles = (2 * Math.PI * radiusM) / 1609.34;
+      updateFieldMetrics(acres, 'drawn');
+      document.getElementById('perim-display').textContent = perimMiles.toFixed(2);
+      document.getElementById('draw-status-badge').textContent =
+        `◎ Radius set (${(radiusM/1609.34).toFixed(2)} mi) — toggle off or click "Clear" to redo`;
+      document.getElementById('save-field-btn').style.display = 'inline-block';
+    }
+    return;
+  }
+});
+
+function setDrawStatusVisible(show){
+  document.getElementById('draw-status-badge').style.display = show ? 'block' : 'none';
+}
+
+function toggleDraw() {
+  // turn off radius mode first
+  if (radiusMode) toggleRadius();
+  drawMode = !drawMode;
+  const btn = document.getElementById('draw-toggle-btn');
+  const clr = document.getElementById('clear-field-btn');
+  if (drawMode) {
+    btn.textContent = '⏹ Finish Drawing';
+    btn.classList.add('active');
+    map.getContainer().style.cursor = 'crosshair';
+    clr.style.display = 'inline-block';
+    document.getElementById('draw-status-badge').textContent = '✏ Click map to add polygon points';
+    setDrawStatusVisible(true);
+  } else {
+    btn.textContent = '✏ Draw Field';
+    btn.classList.remove('active');
+    map.getContainer().style.cursor = '';
+    setDrawStatusVisible(false);
+  }
+}
+
+function toggleRadius() {
+  if (drawMode) toggleDraw();
+  radiusMode = !radiusMode;
+  const btn = document.getElementById('radius-toggle-btn');
+  const clr = document.getElementById('clear-field-btn');
+  if (radiusMode) {
+    btn.textContent = '⏹ Finish Radius';
+    btn.classList.add('active');
+    map.getContainer().style.cursor = 'crosshair';
+    clr.style.display = 'inline-block';
+    document.getElementById('draw-status-badge').textContent = '◎ Click map to set field center point';
+    setDrawStatusVisible(true);
+  } else {
+    btn.textContent = '◎ Radius Field';
+    btn.classList.remove('active');
+    map.getContainer().style.cursor = '';
+    setDrawStatusVisible(false);
+  }
+}
+
+function clearField() {
+  drawnPts = [];
+  drawnMarkers.forEach(m => map.removeLayer(m));
+  drawnMarkers = [];
+  if (drawnPolygon) { map.removeLayer(drawnPolygon); drawnPolygon = null; }
+  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+  if (radiusCenterMarker) { map.removeLayer(radiusCenterMarker); radiusCenterMarker = null; }
+  radiusCenter = null;
+  drawMode = false; radiusMode = false;
+
+  document.getElementById('draw-toggle-btn').textContent = '✏ Draw Field';
+  document.getElementById('draw-toggle-btn').classList.remove('active');
+  document.getElementById('radius-toggle-btn').textContent = '◎ Radius Field';
+  document.getElementById('radius-toggle-btn').classList.remove('active');
+  document.getElementById('clear-field-btn').style.display = 'none';
+  document.getElementById('save-field-btn').style.display = 'none';
+  setDrawStatusVisible(false);
+  map.getContainer().style.cursor = '';
+
+  updateFieldMetrics(160, 'sample');
+  document.getElementById('perim-display').textContent = '—';
+  document.getElementById('field-selector').value = '';
+  activeFieldName = null;
+}
+
+/* Shoelace area in acres (Haversine-based) */
+function calcAcres(pts) {
+  if (pts.length < 3) return 0;
+  const R = 6371000;
+  let area = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const j = (i + 1) % pts.length;
+    const lat1 = pts[i][0] * Math.PI / 180;
+    const lat2 = pts[j][0] * Math.PI / 180;
+    const dLon = (pts[j][1] - pts[i][1]) * Math.PI / 180;
+    area += dLon * (2 + Math.sin(lat1) + Math.sin(lat2));
+  }
+  return Math.abs(area * R * R / 2) * 0.000247105;
+}
+
+/* Perimeter in miles */
+function calcPerimMiles(pts) {
+  if (pts.length < 2) return 0;
+  let d = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const j = (i + 1) % pts.length;
+    d += haverMiles(pts[i][0], pts[i][1], pts[j][0], pts[j][1]);
+  }
+  return d;
+}
+function haverMiles(lat1,lon1,lat2,lon2) {
+  const R=3958.8, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function macHours(acres, widthFt, mph) { return acres / ((widthFt/5280) * mph * 0.85); }
+function fmtH(h) {
+  const hr=Math.floor(h), mn=Math.round((h-hr)*60);
+  return hr===0?`${mn}m`: mn>0?`${hr}h ${mn}m`:`${hr}h`;
+}
+
+function updateFieldMetrics(acres, src) {
+  document.getElementById('acres-display').textContent = src==='drawn' ? acres.toFixed(1) : acres;
+  document.getElementById('field-src-label').textContent = src==='drawn' ? 'drawn field' : 'sample 160 ac';
+  document.getElementById('t-planter').textContent  = fmtH(macHours(acres, 60, 5.5));
+  document.getElementById('t-combine').textContent  = fmtH(macHours(acres, 40, 4.5));
+  document.getElementById('t-sprayer').textContent  = fmtH(macHours(acres, 120, 12));
+  if (src==='drawn' && drawnPts.length >= 3) {
+    const p = calcPerimMiles(drawnPts);
+    document.getElementById('perim-display').textContent = p.toFixed(2);
+  }
+}
+
+updateFieldMetrics(160, 'sample');
+
+/* ══════════════════════
+   SAVE / LOAD / DELETE FIELDS
+══════════════════════ */
+function saveField() {
+  let name = activeFieldName;
+  if (!name) {
+    name = prompt('Name this field:');
+    if (!name) return;
+    name = name.trim();
+    if (!name) return;
+  }
+
+  let entry;
+  if (drawnPts.length >= 3) {
+    entry = {
+      type: 'polygon',
+      pts: drawnPts.slice(),
+      acres: calcAcres(drawnPts),
+      perim: calcPerimMiles(drawnPts),
+      center: drawnPts.reduce((acc,p)=>[acc[0]+p[0]/drawnPts.length, acc[1]+p[1]/drawnPts.length], [0,0]),
+    };
+  } else if (radiusCenter && radiusCircle) {
+    const radiusM = radiusCircle.getRadius();
+    entry = {
+      type: 'circle',
+      center: radiusCenter,
+      radiusM: radiusM,
+      acres: Math.PI * Math.pow(radiusM,2) * 0.000247105,
+      perim: (2 * Math.PI * radiusM) / 1609.34,
+    };
+  } else {
+    alert('Draw or define a field on the map before saving.');
+    return;
+  }
+
+  // crop/planting info from the metrics card
+  entry.crop = document.getElementById('gdd-crop').value;
+  entry.plantDate = document.getElementById('gdd-plant').value;
+
+  savedFields[name] = entry;
+  activeFieldName = name;
+  refreshFieldSelector(name);
+}
+
+function refreshFieldSelector(selectName) {
+  const sel = document.getElementById('field-selector');
+  sel.innerHTML = '<option value="">— Select a saved field —</option>';
+  Object.keys(savedFields).forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  if (selectName) sel.value = selectName;
+}
+
+function loadField(name) {
+  if (!name) { activeFieldName = null; return; }
+  const f = savedFields[name];
+  if (!f) return;
+  activeFieldName = name;
+
+  // clear current drawing
+  drawnPts = [];
+  drawnMarkers.forEach(m => map.removeLayer(m));
+  drawnMarkers = [];
+  if (drawnPolygon) { map.removeLayer(drawnPolygon); drawnPolygon = null; }
+  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+  if (radiusCenterMarker) { map.removeLayer(radiusCenterMarker); radiusCenterMarker = null; }
+  radiusCenter = null;
+
+  if (f.type === 'polygon') {
+    drawnPts = f.pts.slice();
+    drawnPts.forEach(p => drawnMarkers.push(goldMarker(p).addTo(map)));
+    drawnPolygon = L.polygon(drawnPts, {
+      color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
+    }).addTo(map);
+    document.getElementById('perim-display').textContent = f.perim.toFixed(2);
+    map.fitBounds(drawnPolygon.getBounds(), { padding:[30,30] });
+  } else {
+    radiusCenter = f.center;
+    radiusCenterMarker = goldMarker(f.center).addTo(map);
+    radiusCircle = L.circle(f.center, {
+      radius: f.radiusM, color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
+    }).addTo(map);
+    document.getElementById('perim-display').textContent = f.perim.toFixed(2);
+    map.fitBounds(radiusCircle.getBounds(), { padding:[30,30] });
+  }
+
+  updateFieldMetrics(f.acres, 'drawn');
+  document.getElementById('save-field-btn').style.display = 'inline-block';
+  document.getElementById('clear-field-btn').style.display = 'inline-block';
+
+  if (f.crop) document.getElementById('gdd-crop').value = f.crop;
+  if (f.plantDate) document.getElementById('gdd-plant').value = f.plantDate;
+  calcGDD();
+}
+
+function deleteSelectedField() {
+  const sel = document.getElementById('field-selector');
+  const name = sel.value;
+  if (!name) { alert('Select a saved field to delete.'); return; }
+  if (!confirm(`Delete saved field "${name}"?`)) return;
+  delete savedFields[name];
+  refreshFieldSelector();
+  clearField();
+}
+
+/* ══════════════════════
+   MAP SEARCH (city / zip / GPS)
+══════════════════════ */
+async function mapSearch() {
+  const raw = document.getElementById('map-search-input').value.trim();
+  if (!raw) return;
+
+  const coordMatch = raw.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+  if (coordMatch) {
+    const lat = parseFloat(coordMatch[1]);
+    const lon = parseFloat(coordMatch[2]);
+    const label = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    map.setView([lat, lon], 13);
+    await fetchWeather(lat, lon, label);
+    document.getElementById('map-loc-badge').textContent = label;
+    return;
+  }
+
+  try {
+    const res  = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(raw)}&count=1&language=en&format=json`);
+    const data = await res.json();
+    if (!data.results?.length) { alert('Location not found. Try a city name or "lat, lon".'); return; }
+    const { latitude, longitude, name, admin1, country_code } = data.results[0];
+    const label = [name, admin1, country_code].filter(Boolean).join(', ');
+    map.setView([latitude, longitude], 13);
+    await fetchWeather(latitude, longitude, label);
+    document.getElementById('map-loc-badge').textContent = label;
+  } catch(e) {
+    alert('Search failed. Check your connection.');
+  }
+}
+
+/* ══════════════════════
+   WEATHER — 7-day forecast
+══════════════════════ */
+function cToF(c)    { return Math.round(c * 9/5 + 32); }
+function hpaToInHg(h){ return (h * 0.02953).toFixed(2); }
+
+function wmoText(code) {
+  if (code===0) return 'Clear sky';
+  if (code<=3)  return 'Partly cloudy';
+  if (code<=29) return 'Drizzle / Rain';
+  if (code<=39) return 'Snow';
+  if (code<=49) return 'Fog';
+  if (code<=59) return 'Drizzle';
+  if (code<=69) return 'Rain';
+  if (code<=79) return 'Snow';
+  if (code<=84) return 'Rain showers';
+  if (code<=94) return 'Thunderstorm';
+  return 'Severe storm';
+}
+function wmoIcon(code) {
+  if (code===0) return '☀️';
+  if (code<=3)  return '⛅';
+  if (code<=49) return '🌫️';
+  if (code<=59) return '🌦️';
+  if (code<=69) return '🌧️';
+  if (code<=79) return '🌨️';
+  if (code<=84) return '🌦️';
+  return '⛈️';
+}
+
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WIND_DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+function windDir(deg){ return WIND_DIRS[Math.round(deg/22.5) % 16]; }
+
+let forecastDayData = []; // per-day pill data for click switching
+
+async function fetchWeather(lat, lon, locName) {
+  setWeatherLoading(true);
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+      + `&current=weather_code`
+      + `&hourly=cloud_cover,dew_point_2m,relative_humidity_2m,pressure_msl`
+      + `&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant`
+      + `&temperature_unit=celsius&precipitation_unit=inch&wind_speed_unit=mph&timezone=auto&forecast_days=7`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+
+    document.getElementById('w-updated').textContent  = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('weather-loc').textContent = locName;
+
+    // 7-day table rows
+    const rows = document.getElementById('forecast-rows');
+    rows.innerHTML = '';
+    const days = data.daily.time;
+    let hiSum = 0, loSum = 0;
+    forecastDayData = [];
+
+    days.forEach((dateStr, i) => {
+      const d = new Date(dateStr + 'T00:00:00');
+      const dayLabel = i === 0 ? 'Today' : DAY_NAMES[d.getDay()];
+      const hi = cToF(data.daily.temperature_2m_max[i]);
+      const lo = cToF(data.daily.temperature_2m_min[i]);
+      const feelsHi = cToF(data.daily.apparent_temperature_max[i]);
+      const feelsLo = cToF(data.daily.apparent_temperature_min[i]);
+      hiSum += hi; loSum += lo;
+      const cond = wmoText(data.daily.weather_code[i]);
+      const icon = wmoIcon(data.daily.weather_code[i]);
+      const precipPct = data.daily.precipitation_probability_max[i];
+      const precipAmt = data.daily.precipitation_sum[i];
+      const wind = Math.round(data.daily.wind_speed_10m_max[i]);
+      const dir = windDir(data.daily.wind_direction_10m_dominant[i]);
+
+      // midday hourly index for this day (hour 12)
+      const hourIdx = i * 24 + 12;
+      const cloud = data.hourly.cloud_cover[hourIdx];
+      const dew = cToF(data.hourly.dew_point_2m[hourIdx]);
+      const humidity = data.hourly.relative_humidity_2m[hourIdx];
+      const pressure = hpaToInHg(data.hourly.pressure_msl[hourIdx]);
+
+      forecastDayData.push({ dayLabel, cloud, dew, humidity, pressure });
+
+      const row = document.createElement('tr');
+      row.className = 'fc-row';
+      row.dataset.idx = i;
+      row.innerHTML = `
+        <td class="fc-day">${dayLabel}</td>
+        <td class="fc-cond">${icon} ${cond}</td>
+        <td><div class="fc-temps"><span class="hi">${hi}°</span><span class="lo">${lo}°</span><span class="feels">feels ${feelsHi}°/${feelsLo}°</span></div></td>
+        <td class="fc-precip">${precipPct}%<span class="sub">${precipAmt.toFixed(2)} in</span></td>
+        <td class="fc-wind">${wind} mph<span class="sub">${dir}</span></td>
+      `;
+      row.addEventListener('click', () => selectForecastDay(i));
+      rows.appendChild(row);
+    });
+
+    // default to today's pills
+    selectForecastDay(0);
+
+    // update field metrics avg hi/lo + GDD
+    const avgHi = Math.round(hiSum / days.length);
+    const avgLo = Math.round(loSum / days.length);
+    document.getElementById('gdd-hilo-display').textContent = `${avgHi}° / ${avgLo}°`;
+    window._avgHi = avgHi; window._avgLo = avgLo;
+    calcGDD();
+
+    document.getElementById('w-loading').style.display = 'none';
+    document.getElementById('w-data').style.display    = 'block';
+    document.getElementById('w-error').style.display   = 'none';
+  } catch(e) {
+    setWeatherLoading(false, true);
+  }
+}
+
+function selectForecastDay(idx) {
+  const d = forecastDayData[idx];
+  if (!d) return;
+  document.getElementById('detail-day-lbl').textContent = d.dayLabel === 'Today' ? "Today's Conditions" : `${d.dayLabel} Conditions`;
+  document.getElementById('w-cloud').textContent    = d.cloud + '%';
+  document.getElementById('w-dewpoint').textContent = d.dew + '°F';
+  document.getElementById('w-humidity').textContent = d.humidity + '%';
+  document.getElementById('w-pressure').textContent = d.pressure + ' inHg';
+
+  document.querySelectorAll('.fc-row').forEach(r => r.classList.remove('selected'));
+  const sel = document.querySelector(`.fc-row[data-idx="${idx}"]`);
+  if (sel) sel.classList.add('selected');
+}
+
+function setWeatherLoading(loading, error=false) {
+  document.getElementById('w-loading').style.display = loading && !error ? 'block' : 'none';
+  document.getElementById('w-data').style.display = 'none';
+  document.getElementById('w-error').style.display = error ? 'block' : 'none';
+}
+
+// init
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    p => { map.setView([p.coords.latitude, p.coords.longitude], 13); fetchWeather(p.coords.latitude, p.coords.longitude, 'Your location'); },
+    () => fetchWeather(DEFAULT_LAT, DEFAULT_LON, 'Colorado Springs, CO')
+  );
+} else {
+  fetchWeather(DEFAULT_LAT, DEFAULT_LON, 'Colorado Springs, CO');
+}
+
+/* ══════════════════════
+   GDD CALCULATOR (single bar)
+══════════════════════ */
+const CROP_GDD = { corn:2700, soy:2500, wheat:2000, canola:1800 };
+const CROP_SEASON_DAYS = { corn:120, soy:110, wheat:200, canola:100 }; // typical days to maturity from planting
+const CROP_LABEL = { corn:'corn', soy:'soybeans', wheat:'winter wheat', canola:'canola' };
+
+function calcGDD() {
+  const crop  = document.getElementById('gdd-crop').value;
+  const plantStr = document.getElementById('gdd-plant').value;
+  if (!plantStr) return;
+
+  const plantDate = new Date(plantStr + 'T00:00:00');
+  const today = new Date();
+  const days = Math.max(Math.round((today - plantDate) / 86400000), 0);
+  document.getElementById('gdd-days-display').textContent = days;
+
+  const high = window._avgHi ?? 82;
+  const low  = window._avgLo ?? 58;
+  const daily = Math.max(((high+low)/2)-50, 0);
+  const total = Math.round(daily*days);
+  const target= CROP_GDD[crop];
+  const pct   = Math.min(Math.round((total/target)*100),100);
+
+  document.getElementById('gdd-bar').style.width = pct+'%';
+  const rem = target-total;
+  document.getElementById('gdd-status').textContent = rem<=0
+    ? `Maturity reached · ${total.toLocaleString()} / ${target.toLocaleString()} GDD`
+    : `${pct}% · ${total.toLocaleString()} / ${target.toLocaleString()} GDD`;
+
+  document.getElementById('gdd-plant-lbl').textContent = plantDate.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  const harvestDate = new Date(plantDate.getTime() + CROP_SEASON_DAYS[crop]*86400000);
+  document.getElementById('gdd-harvest-lbl').textContent =
+    `Est. harvest (${CROP_LABEL[crop]}): ${harvestDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+
+  // persist crop/planting date to the active saved field, if any
+  if (activeFieldName && savedFields[activeFieldName]) {
+    savedFields[activeFieldName].crop = crop;
+    savedFields[activeFieldName].plantDate = plantStr;
+  }
+}
+
+document.getElementById('gdd-plant').value = new Date(Date.now()-45*86400000).toISOString().slice(0,10);
+calcGDD();
+</script>
+</body>
+</html>
