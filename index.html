@@ -324,7 +324,7 @@
 // ── CONFIG ──
 const SUPABASE_URL = 'https://yjzhcpiuqpzqgpewhqwe.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Sn7HXf3-wI2AZABqaIKq6A_iPOBQsAq';
-const ANTHROPIC_KEY = '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';
+const PROXY_URL = 'https://yjzhcpiuqpzqgpewhqwe.supabase.co/functions/v1/anthropic-proxy';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -636,14 +636,9 @@ Make dollar values realistic and specific to the acreage. Urgent = needs action 
     let rawData = null;
     let rawText = null;
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch(PROXY_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
       });
       rawText = await res.text();
@@ -747,9 +742,9 @@ Question: ${q}
 Answer in 2-4 sentences. Be specific, practical, and include dollar figures where relevant. Plain English only.`;
 
   try {
-    const res2 = await fetch('https://api.anthropic.com/v1/messages', {
+    const res2 = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
     });
     const data2 = await res2.json();
