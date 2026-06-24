@@ -639,6 +639,9 @@ Make dollar values realistic and specific to the acreage. Urgent = needs action 
       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
+    if (!res.ok || !data.content || !data.content[0]) {
+      throw new Error('API response: ' + JSON.stringify(data));
+    }
     const text = data.content[0].text.trim();
     const insights = JSON.parse(text);
 
