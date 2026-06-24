@@ -633,16 +633,29 @@ Return ONLY a JSON array with exactly 4 objects, no markdown, no explanation:
 Make dollar values realistic and specific to the acreage. Urgent = needs action within 48 hours.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.content || !data.content[0]) {
-      throw new Error('API response: ' + JSON.stringify(data));
+    let rawData = null;
+    let rawText = null;
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+      });
+      rawText = await res.text();
+      rawData = JSON.parse(rawText);
+    } catch(fetchErr) {
+      throw new Error('Fetch failed: ' + fetchErr.message + ' | Raw: ' + rawText);
     }
-    const text = data.content[0].text.trim();
+    if (!rawData || !rawData.content || !rawData.content.length) {
+      throw new Error('Bad API response: ' + JSON.stringify(rawData));
+    }
+    const text = rawData.content[0].text.trim();
+    const data = rawData;
     const insights = JSON.parse(text);
 
     const urgencyClass = { urgent: 'urgent', advisory: 'advisory', info: 'info', timing: 'timing' };
@@ -734,13 +747,14 @@ Question: ${q}
 Answer in 2-4 sentences. Be specific, practical, and include dollar figures where relevant. Plain English only.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res2 = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
     });
-    const data = await res.json();
-    answerDiv.innerHTML = `<div class="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">${data.content[0].text}</div>`;
+    const data2 = await res2.json();
+    if (!data2.content || !data2.content[0]) throw new Error(JSON.stringify(data2));
+    answerDiv.innerHTML = `<div class="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">${data2.content[0].text}</div>`;
   } catch(e) {
     answerDiv.innerHTML = `<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600">Error: ${e.message}</div>`;
   }
