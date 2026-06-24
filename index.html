@@ -1,1026 +1,750 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Green Tractor Company — Field Intelligence Platform</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-/* ═══════════ TOKENS ═══════════ */
-:root {
-  --gf:   #1E3A0F;
-  --gm:   #3A6B1A;
-  --gl:   #6DAF3A;
-  --ag:   #C8860A;
-  --al:   #F0B429;
-  --c1:   #14171A;
-  --c2:   #1C2128;
-  --c3:   #252D36;
-  --c4:   #2E3844;
-  --c5:   #3A4554;
-  --bd:   rgba(255,255,255,0.08);
-  --td:   rgba(255,255,255,0.40);
-  --tm:   rgba(255,255,255,0.68);
-  --tb:   rgba(255,255,255,0.92);
-}
-
-/* ═══════════ RESET ═══════════ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{font-size:14px;}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--c1);
-  color:var(--tb);
-  min-height:100%;
-}
-.serif{font-family:'DM Serif Display',serif;}
-
-/* ═══════════ HEADER ═══════════ */
-#app-header{
-  background:var(--gf);
-  background-image:repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(255,255,255,0.022) 48px,rgba(255,255,255,0.022) 50px);
-  border-bottom:1px solid rgba(255,255,255,0.07);
-}
-.header-inner{
-  max-width:1400px;margin:0 auto;
-  padding:18px 24px;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:16px;flex-wrap:wrap;
-}
-.user-block{display:flex;flex-direction:column;align-items:flex-end;text-align:right;}
-.user-name{font-family:'DM Serif Display',serif;font-size:24px;color:#fff;line-height:1.2;}
-.user-title{font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:0.03em;margin-top:4px;}
-.brand-wrap{display:flex;align-items:center;gap:16px;}
-.brand-logo{width:80px;height:auto;object-fit:contain;}
-.brand-name{font-family:'DM Serif Display',serif;font-size:23px;color:#fff;letter-spacing:0.01em;line-height:1.15;}
-.brand-sub{font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px;}
-
-/* ═══════════ PANEL SYSTEM ═══════════ */
-.panel{
-  background:var(--c3);
-  border:1px solid var(--bd);
-  border-radius:10px;
-  overflow:hidden;
-}
-.panel-hdr{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 14px;
-  background:var(--c4);
-  border-bottom:1px solid var(--bd);
-}
-.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.panel-label{
-  font-size:10px;font-weight:700;letter-spacing:0.07em;
-  text-transform:uppercase;color:var(--tm);
-}
-.panel-body{padding:14px;}
-
-/* ═══════════ MAP ═══════════ */
-#field-map{height:440px;width:100%;}
-.leaflet-container{background:#1a2a10!important;}
-
-#map-search-overlay{
-  position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  z-index:1000;display:flex;gap:6px;
-  width:min(460px,90%);
-}
-#map-search-input{
-  flex:1;font-family:'DM Sans',sans-serif;font-size:12px;
-  background:rgba(20,23,26,0.88);
-  border:1px solid rgba(109,175,58,0.4);
-  border-radius:7px;color:var(--tb);
-  padding:8px 13px;outline:none;
-  backdrop-filter:blur(6px);
-  transition:border-color 0.15s;
-}
-#map-search-input:focus{border-color:var(--gl);}
-#map-search-input::placeholder{color:var(--td);}
-.map-btn{
-  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;
-  padding:8px 14px;border-radius:7px;
-  border:1px solid rgba(109,175,58,0.4);
-  background:rgba(20,23,26,0.88);color:var(--gl);
-  cursor:pointer;backdrop-filter:blur(6px);transition:all 0.15s;
-  white-space:nowrap;
-}
-.map-btn:hover{background:var(--gm);color:#fff;border-color:var(--gm);}
-.map-btn.active{background:var(--gm);color:#fff;border-color:var(--gm);}
-.map-btn.danger{border-color:rgba(200,90,70,0.5);color:#e07060;}
-.map-btn.danger:hover{background:rgba(200,90,70,0.2);}
-
-#map-coords-badge{
-  position:absolute;bottom:10px;left:10px;z-index:1000;
-  background:rgba(20,23,26,0.82);border:1px solid var(--bd);
-  border-radius:5px;padding:4px 9px;font-size:10px;color:var(--td);
-  backdrop-filter:blur(4px);pointer-events:none;
-}
-#draw-status-badge{
-  position:absolute;bottom:10px;right:10px;z-index:1000;
-  background:rgba(58,107,26,0.85);border:1px solid rgba(109,175,58,0.4);
-  border-radius:5px;padding:4px 9px;font-size:10px;color:#fff;
-  backdrop-filter:blur(4px);pointer-events:none;display:none;
-}
-
-/* ═══════════ METRICS TILES ═══════════ */
-.metric-tile{
-  background:var(--c4);border:1px solid var(--bd);
-  border-radius:8px;padding:12px 14px;
-}
-.metric-tile .mlab{font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);margin-bottom:6px;}
-.metric-tile .mval{font-size:26px;font-weight:300;color:var(--gl);line-height:1;}
-.metric-tile .msub{font-size:10px;color:var(--td);margin-top:2px;}
-
-.machinery-table{width:100%;border-collapse:collapse;}
-.machinery-table th{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);}
-.machinery-table td{font-size:12px;color:var(--tm);padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.03);}
-.machinery-table td.val{color:var(--tb);font-weight:600;text-align:right;}
-.machinery-table tr:last-child td{border-bottom:none;}
-.eq-name{font-size:12px;font-weight:600;color:var(--tb);}
-.eq-spec{font-size:10px;color:var(--td);}
-
-/* ═══════════ WEATHER FORECAST TABLE ═══════════ */
-.forecast-table{width:100%;border-collapse:collapse;table-layout:fixed;}
-.forecast-table th{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap;}
-.forecast-table td{font-size:12px;color:var(--tm);padding:9px 8px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;font-variant-numeric:tabular-nums;}
-.forecast-table tr:last-child td{border-bottom:none;}
-.forecast-table th:nth-child(1),.forecast-table td:nth-child(1){width:14%;}
-.forecast-table th:nth-child(2),.forecast-table td:nth-child(2){width:28%;}
-.forecast-table th:nth-child(3),.forecast-table td:nth-child(3){width:28%;}
-.forecast-table th:nth-child(4),.forecast-table td:nth-child(4){width:15%;}
-.forecast-table th:nth-child(5),.forecast-table td:nth-child(5){width:15%;}
-
-.fc-row{cursor:pointer;transition:background 0.12s;}
-.fc-row:hover{background:rgba(255,255,255,0.03);}
-.fc-row.selected{background:rgba(109,175,58,0.10);}
-.fc-day{font-size:12px;font-weight:600;color:var(--tb);}
-.fc-cond{font-size:11px;color:var(--td);white-space:nowrap;}
-.fc-temps{display:grid;grid-template-columns:32px 32px;column-gap:6px;align-items:baseline;justify-content:end;text-align:right;font-variant-numeric:tabular-nums;}
-.fc-temps .hi{font-size:12px;font-weight:600;color:var(--gl);}
-.fc-temps .lo{font-size:12px;font-weight:400;color:var(--td);}
-.fc-temps .feels{grid-column:1 / -1;color:var(--td);font-weight:400;font-size:10px;margin-top:1px;text-align:right;}
-.fc-precip,.fc-wind{font-size:11px;color:var(--tm);text-align:right;line-height:1.5;}
-.fc-precip .sub,.fc-wind .sub{display:block;color:var(--td);font-size:10px;}
-.w-pill{background:var(--c4);border:1px solid var(--bd);border-radius:7px;padding:8px 10px;}
-.w-pill .wl{font-size:10px;color:var(--td);margin-bottom:3px;}
-.w-pill .wv{font-size:13px;font-weight:600;color:var(--tb);}
-
-/* ═══════════ GDD ═══════════ */
-.gdd-track{background:var(--c5);border-radius:99px;height:8px;overflow:hidden;}
-.gdd-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gm),var(--ag));transition:width 0.5s ease;}
-
-/* ═══════════ DARK INPUTS ═══════════ */
-.di{
-  font-family:'DM Sans',sans-serif;font-size:12px;
-  background:var(--c4);border:1px solid var(--bd);
-  border-radius:7px;color:var(--tb);padding:7px 10px;
-  outline:none;width:100%;transition:border-color 0.15s;
-}
-.di:focus{border-color:rgba(109,175,58,0.5);}
-.di option{background:var(--c3);}
-.di-label{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);display:block;margin-bottom:4px;}
-
-/* ═══════════ SPINNER ═══════════ */
-@keyframes spin{to{transform:rotate(360deg);}}
-.spin{animation:spin 1s linear infinite;}
-
-/* ═══════════ FOOTER ═══════════ */
-.soil{background:linear-gradient(135deg,#3d2a10,#5a3e20,#3d2a10);height:3px;}
-#app-footer{
-  position:relative;
-  padding:48px 20px;
-  min-height:160px;
-  background:
-    linear-gradient(180deg,rgba(8,14,4,0.35),rgba(8,14,4,0.75)),
-    url('cornfield.jpg') center 60% / cover no-repeat,
-    linear-gradient(180deg,#4a6b28 0%,#3a5e1f 45%,#2a4715 100%);
-  background-blend-mode:normal, normal, normal;
-  border-top:1px solid rgba(255,255,255,0.06);
-}
-#app-footer::before{
-  content:'';position:absolute;inset:0;
-  background-image:repeating-linear-gradient(105deg,transparent 0 10px, rgba(0,0,0,0.06) 10px 11px);
-  pointer-events:none;
-}
-.footer-inner{
-  position:relative;z-index:1;
-  max-width:1400px;margin:0 auto;
-  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;
-}
-.footer-tagline{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;}
-.footer-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:4px;}
-
-/* ═══════════ UTILS ═══════════ */
-.section-wrap{max-width:1400px;margin:0 auto;padding:20px;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-@media(max-width:900px){.grid-2{grid-template-columns:1fr;}.grid-4{grid-template-columns:1fr 1fr;}}
-@media(max-width:600px){.grid-4{grid-template-columns:1fr 1fr;}}
-.gap-sm{gap:10px;}
-.flex-col{display:flex;flex-direction:column;gap:10px;}
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  body { font-family: 'Inter', sans-serif; background: #f5f4f0; color: #1a1a18; }
+  #map { height: 420px; width: 100%; border-radius: 8px; z-index: 1; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .card { background: #fff; border: 1px solid #e2e0d8; border-radius: 10px; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #8a8878; margin-bottom: 12px; }
+  .insight-card { background: #fff; border: 1px solid #e2e0d8; border-radius: 8px; padding: 16px; position: relative; }
+  .insight-card.urgent { border-left: 3px solid #c8581a; }
+  .insight-card.advisory { border-left: 3px solid #4a7c3f; }
+  .insight-card.info { border-left: 3px solid #2563a8; }
+  .insight-card.timing { border-left: 3px solid #8a5a00; }
+  .dollar-badge { background: #f0f7ec; color: #2d5a22; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; }
+  .field-btn { transition: all 0.15s; }
+  .field-btn.active { background: #1a3a1a; color: #fff; }
+  .field-btn:not(.active) { background: #fff; color: #1a1a18; border: 1px solid #d0cec4; }
+  .field-btn:hover:not(.active) { background: #f0ede4; }
+  .spinner { border: 2px solid #e2e0d8; border-top: 2px solid #4a7c3f; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .weather-day { text-align: center; padding: 10px 6px; background: #fafaf7; border-radius: 6px; border: 1px solid #e8e6de; }
+  .stat-box { background: #fafaf7; border: 1px solid #e8e6de; border-radius: 8px; padding: 12px 16px; }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+  .tag-corn { background: #fef3c7; color: #92400e; }
+  .tag-soy { background: #d1fae5; color: #065f46; }
+  .tag-oh { background: #ede9fe; color: #4c1d95; }
+  .tag-mi { background: #dbeafe; color: #1e3a8a; }
+  .tag-il { background: #fce7f3; color: #831843; }
+  .tag-ia { background: #ccfbf1; color: #134e4a; }
+  .ai-question-input { width: 100%; border: 1px solid #d0cec4; border-radius: 8px; padding: 10px 14px; font-size: 14px; background: #fafaf7; outline: none; font-family: 'Inter', sans-serif; }
+  .ai-question-input:focus { border-color: #4a7c3f; background: #fff; }
+  .ask-btn { background: #1a3a1a; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .ask-btn:hover { background: #2d5a22; }
+  .ask-btn:disabled { background: #8a8878; cursor: not-allowed; }
+  .gdd-bar-bg { background: #e8e6de; border-radius: 4px; height: 6px; margin-top: 4px; }
+  .gdd-bar-fill { background: #4a7c3f; border-radius: 4px; height: 6px; transition: width 0.6s ease; }
+  .supplier-chip { display: inline-flex; align-items: center; gap: 6px; background: #f0ede4; border: 1px solid #d0cec4; border-radius: 16px; padding: 4px 10px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .supplier-chip.selected { background: #1a3a1a; color: #fff; border-color: #1a3a1a; }
+  select, input[type=number] { border: 1px solid #d0cec4; border-radius: 6px; padding: 6px 10px; font-size: 13px; background: #fafaf7; font-family: 'Inter', sans-serif; outline: none; }
+  select:focus, input[type=number]:focus { border-color: #4a7c3f; background: #fff; }
+  .logo-mark { width: 36px; height: 36px; background: #1a3a1a; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .nav-pill { font-size: 12px; background: #edf2ed; color: #2d5a22; padding: 4px 10px; border-radius: 12px; font-weight: 500; }
+  .kpi-card { background: #fafaf7; border: 1px solid #e8e6de; border-radius: 8px; padding: 16px; }
+  .history-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0ede4; align-items: flex-start; }
+  .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .dot-plant { background: #4a7c3f; }
+  .dot-spray { background: #2563a8; }
+  .dot-fertilize { background: #c8581a; }
 </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<!-- ══════════════════════════════════════════════════
-     HEADER — Left: identity / Right: brand
-══════════════════════════════════════════════════ -->
-<header id="app-header">
-  <div class="header-inner">
-
-    <!-- Left: Brand -->
-    <div class="brand-wrap">
-      <img src="tractor-logo.png" alt="The Green Tractor Company logo" class="brand-logo" />
+<!-- ── HEADER ── -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 14 L10 4 L17 14" stroke="#8bc97a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 14 h8" stroke="#8bc97a" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="10" cy="4" r="1.5" fill="#8bc97a"/>
+        </svg>
+      </div>
       <div>
-        <div class="brand-name">The Green Tractor Company</div>
-        <div class="brand-sub">Field Intelligence Platform</div>
+        <div class="font-semibold text-sm leading-tight">The Green Tractor Company</div>
+        <div class="text-xs text-gray-500 leading-tight">Field Intelligence Platform</div>
       </div>
     </div>
-
-    <!-- Right: Identity -->
-    <div class="user-block">
-      <div class="user-name">Gregory J. Hebner</div>
-      <div class="user-title">Product Manager — Mechanical &amp; Electronic Portfolios</div>
+    <div class="hidden md:flex items-center gap-4">
+      <span class="nav-pill">EQIP-eligible · 90% cost-share available</span>
+      <div class="text-right">
+        <div class="text-xs font-semibold">Gregory J. Hebner</div>
+        <div class="text-xs text-gray-500">Product Manager</div>
+      </div>
+      <a href="https://www.linkedin.com/in/greghebner/" target="_blank" class="text-xs text-green-800 underline">LinkedIn</a>
     </div>
-
   </div>
 </header>
 
-<!-- ══════════════════════════════════════════════════
-     MAIN
-══════════════════════════════════════════════════ -->
-<main>
-  <div class="section-wrap">
-
-    <!-- Map Panel — full width with overlay search -->
-    <div class="panel" style="margin-bottom:16px;position:relative;">
-      <div class="panel-hdr" style="justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="dot" style="background:var(--gl);"></div>
-          <span class="panel-label">Interactive Field Map</span>
-          <span id="map-loc-badge" style="font-size:10px;color:var(--td);margin-left:6px;"></span>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="map-btn" id="draw-toggle-btn" onclick="toggleDraw()">✏ Draw Field</button>
-          <button class="map-btn" id="radius-toggle-btn" onclick="toggleRadius()">◎ Radius Field</button>
-          <button class="map-btn" id="save-field-btn" style="display:none;" onclick="saveField()">💾 Save Field</button>
-          <button class="map-btn danger" id="clear-field-btn" style="display:none;" onclick="clearField()">✕ Clear</button>
-        </div>
+<!-- ── PM BRIEF ── -->
+<div class="bg-[#1a3a1a] text-white">
+  <div class="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="max-w-2xl">
+      <p class="text-sm text-green-300 font-medium mb-1">Product brief</p>
+      <p class="text-sm text-green-100 leading-relaxed">Corn and soybean operations across the Midwest face rising input costs, compressed margins, and fewer hands making more decisions. This platform turns field data, live weather, and agronomic history into plain-English AI recommendations — with dollar-value outcomes attached to every action. Built to demonstrate a farmer-first AI insights product for operators running 300–1,000 acres.</p>
+    </div>
+    <div class="flex gap-4 flex-shrink-0">
+      <div class="text-center">
+        <div class="text-2xl font-semibold mono">4</div>
+        <div class="text-xs text-green-400">live fields</div>
       </div>
-
-      <!-- Map container (relative for overlays) -->
-      <div style="position:relative;">
-        <div id="field-map"></div>
-
-        <!-- Search overlay -->
-        <div id="map-search-overlay">
-          <input type="text" id="map-search-input"
-            placeholder="City, zip code, or GPS coords (lat, lon)…"
-            onkeydown="if(event.key==='Enter') mapSearch()" />
-          <button class="map-btn" onclick="mapSearch()">Search</button>
-        </div>
-
-        <!-- Coord badge -->
-        <div id="map-coords-badge">38.8338° N, 104.8214° W</div>
-
-        <!-- Draw status -->
-        <div id="draw-status-badge"></div>
+      <div class="text-center">
+        <div class="text-2xl font-semibold mono">2,150</div>
+        <div class="text-xs text-green-400">total acres</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-semibold mono">AI</div>
+        <div class="text-xs text-green-400">powered recs</div>
       </div>
     </div>
-
-    <!-- Tip bar -->
-    <div style="font-size:11px;color:var(--td);padding:10px 14px;background:var(--c3);border:1px solid var(--bd);border-radius:8px;margin-bottom:16px;">
-      ⓘ <strong style="color:var(--tm);">Field Drawing:</strong> Click "Draw Field" then click the map to place polygon vertices, or use "Radius Field" to pick a center point and drag the radius. Click "Save Field" to store it for later, then recall it from the Field Metrics selector. Pan or search the map to relocate and refresh the forecast.
-    </div>
-
-    <!-- Weather / Field Metrics — split across width -->
-    <div class="grid-2" style="margin-bottom:16px;">
-
-      <!-- 7-Day Weather Forecast -->
-      <div class="panel">
-        <div class="panel-hdr" style="justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div class="dot" style="background:#5B9BD5;"></div>
-            <span class="panel-label">7-Day Forecast</span>
-          </div>
-          <span style="font-size:10px;color:var(--td);" id="weather-loc">—</span>
-        </div>
-        <div class="panel-body">
-
-          <div id="w-loading" style="text-align:center;padding:24px 0;color:var(--td);font-size:12px;">
-            <svg class="spin" style="display:inline-block;margin-bottom:6px;" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><br/>Fetching…
-          </div>
-
-          <div id="w-data" style="display:none;">
-
-            <!-- 7-day table -->
-            <table class="forecast-table" id="forecast-table">
-              <thead>
-                <tr>
-                  <th>Day</th>
-                  <th>Conditions</th>
-                  <th style="text-align:right;">Temp (Hi/Lo · Feels)</th>
-                  <th style="text-align:right;">Precip</th>
-                  <th style="text-align:right;">Wind</th>
-                </tr>
-              </thead>
-              <tbody id="forecast-rows"></tbody>
-            </table>
-
-            <!-- Selected-day detail pills -->
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin:14px 0 8px;">
-              <span class="di-label" style="margin:0;" id="detail-day-lbl">Today's Conditions</span>
-              <span style="font-size:10px;color:var(--td);" id="w-updated">--</span>
-            </div>
-            <div class="grid-4 gap-sm">
-              <div class="w-pill"><div class="wl">☁ Cloud Cover</div><div class="wv" id="w-cloud">--</div></div>
-              <div class="w-pill"><div class="wl">💧 Dew Point</div><div class="wv" id="w-dewpoint">--</div></div>
-              <div class="w-pill"><div class="wl">🌫 Humidity</div><div class="wv" id="w-humidity">--</div></div>
-              <div class="w-pill"><div class="wl">⏱ Pressure</div><div class="wv" id="w-pressure">--</div></div>
-            </div>
-
-          </div>
-
-          <div id="w-error" style="display:none;font-size:12px;color:#e07060;padding:10px 0;">Could not fetch weather.</div>
-        </div>
-      </div>
-
-      <!-- Field Metrics -->
-      <div class="panel">
-        <div class="panel-hdr">
-          <div class="dot" style="background:var(--ag);"></div>
-          <span class="panel-label">Field Metrics</span>
-          <span id="field-src-label" style="margin-left:auto;font-size:10px;color:var(--td);font-style:italic;">sample 160 ac</span>
-        </div>
-        <div class="panel-body flex-col">
-
-          <!-- Field selector -->
-          <div>
-            <label class="di-label">Saved Fields</label>
-            <div style="display:flex;gap:8px;">
-              <select id="field-selector" class="di" onchange="loadField(this.value)">
-                <option value="">— Select a saved field —</option>
-              </select>
-              <button class="map-btn danger" style="flex-shrink:0;" onclick="deleteSelectedField()">🗑 Delete</button>
-            </div>
-          </div>
-
-          <!-- Acreage / Perimeter -->
-          <div class="grid-2 gap-sm">
-            <div class="metric-tile">
-              <div class="mlab">Total Field Area</div>
-              <div class="mval" id="acres-display">160</div>
-              <div class="msub">acres</div>
-            </div>
-            <div class="metric-tile">
-              <div class="mlab">Perimeter</div>
-              <div class="mval" id="perim-display">—</div>
-              <div class="msub">miles</div>
-            </div>
-          </div>
-
-          <!-- Crop type / planting date / days elapsed / hi/lo -->
-          <div class="grid-4 gap-sm">
-            <div>
-              <label class="di-label">Crop Type</label>
-              <select id="gdd-crop" class="di" onchange="calcGDD()">
-                <option value="corn">Corn</option>
-                <option value="soy">Soybeans</option>
-                <option value="wheat">Winter Wheat</option>
-                <option value="canola">Canola</option>
-              </select>
-            </div>
-            <div>
-              <label class="di-label">Planting Date</label>
-              <input type="date" id="gdd-plant" class="di" onchange="calcGDD()" />
-            </div>
-            <div class="metric-tile">
-              <div class="mlab">Days Elapsed</div>
-              <div class="mval" id="gdd-days-display" style="font-size:22px;">--</div>
-              <div class="msub">since planting</div>
-            </div>
-            <div class="metric-tile">
-              <div class="mlab">Ave Hi / Lo</div>
-              <div class="mval" style="font-size:18px;" id="gdd-hilo-display">--° / --°</div>
-              <div class="msub">°F, 7-day</div>
-            </div>
-          </div>
-
-          <!-- GDD bar -->
-          <div style="background:var(--c4);border:1px solid var(--bd);border-radius:8px;padding:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-              <span class="di-label" style="margin:0;">Season Progress (GDD)</span>
-              <span style="font-size:10px;color:var(--td);" id="gdd-status">—</span>
-            </div>
-            <div class="gdd-track"><div class="gdd-fill" id="gdd-bar" style="width:0%"></div></div>
-            <div style="font-size:10px;color:var(--td);margin-top:6px;display:flex;justify-content:space-between;">
-              <span>Planted: <span id="gdd-plant-lbl">--</span></span>
-              <span id="gdd-harvest-lbl">Est. harvest: --</span>
-            </div>
-          </div>
-
-          <!-- Machinery table -->
-          <div>
-            <div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--td);margin-bottom:8px;">Machinery Execution Estimates <span style="font-weight:400;font-style:italic;text-transform:none;letter-spacing:0;">(85% efficiency)</span></div>
-            <table class="machinery-table">
-              <thead><tr><th>Equipment</th><th>Description</th><th style="text-align:right;">Ave. Speed</th><th style="text-align:right;">Est. Time</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td><div class="eq-name">24-Row Planter</div></td>
-                  <td class="eq-spec">60 ft working width</td>
-                  <td class="val">5.5 mph</td>
-                  <td class="val" id="t-planter">—</td>
-                </tr>
-                <tr>
-                  <td><div class="eq-name">S7 Combine</div></td>
-                  <td class="eq-spec">40 ft header width</td>
-                  <td class="val">4.5 mph</td>
-                  <td class="val" id="t-combine">—</td>
-                </tr>
-                <tr>
-                  <td><div class="eq-name">See &amp; Spray™ Sprayer</div></td>
-                  <td class="eq-spec">120 ft boom width</td>
-                  <td class="val">12 mph</td>
-                  <td class="val" id="t-sprayer">—</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-
   </div>
-</main>
+</div>
 
-<!-- ══════════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════════ -->
-<div class="soil"></div>
-<footer id="app-footer">
-  <div class="footer-inner">
+<div class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+
+<!-- ── FIELD SELECTOR ── -->
+<div class="card p-5">
+  <div class="section-label">Select field</div>
+  <div class="flex flex-wrap gap-2 mb-4" id="field-tabs">
+    <button class="field-btn active px-4 py-2 rounded-lg text-sm font-medium" data-field="f1" onclick="selectField('f1')">
+      Hardin North <span class="ml-1 tag tag-corn">Corn</span><span class="ml-1 tag tag-oh">OH</span>
+    </button>
+    <button class="field-btn px-4 py-2 rounded-lg text-sm font-medium" data-field="f2" onclick="selectField('f2')">
+      Lenawee East <span class="ml-1 tag tag-soy">Soy</span><span class="ml-1 tag tag-mi">MI</span>
+    </button>
+    <button class="field-btn px-4 py-2 rounded-lg text-sm font-medium" data-field="f3" onclick="selectField('f3')">
+      Grundy South <span class="ml-1 tag tag-corn">Corn</span><span class="ml-1 tag tag-il">IL</span>
+    </button>
+    <button class="field-btn px-4 py-2 rounded-lg text-sm font-medium" data-field="f4" onclick="selectField('f4')">
+      Story West <span class="ml-1 tag tag-soy">Soy</span><span class="ml-1 tag tag-ia">IA</span>
+    </button>
+  </div>
+  <div id="field-summary" class="flex flex-wrap gap-4 text-sm text-gray-600"></div>
+</div>
+
+<!-- ── MAP ── -->
+<div class="card p-5">
+  <div class="section-label">Field location</div>
+  <div id="map"></div>
+  <p class="text-xs text-gray-400 mt-2">Click the map to explore. Field marker shows selected location.</p>
+</div>
+
+<!-- ── AI INSIGHT PANEL ── -->
+<div class="card p-5">
+  <div class="flex items-center justify-between mb-4">
     <div>
-      <div class="footer-tagline">Built for Performance Farming.</div>
-      <div class="footer-sub">The Green Tractor Company · Field Intelligence Platform</div>
+      <div class="section-label mb-0">AI field intelligence</div>
+      <div class="text-xs text-gray-400 mt-0.5">Recommendations based on field history, live weather, GDD progress, and current input costs</div>
     </div>
-    <div style="display:flex;gap:16px;">
-    <a href="https://www.linkedin.com/in/greghebner/" target="_blank" style="font-size:15px;color:#fff;background:var(--ag);text-decoration:none;font-weight:700;padding:12px 24px;border-radius:99px;letter-spacing:0.02em;display:inline-flex;align-items:center;gap:8px;transition:background 0.15s;" onmouseover="this.style.background='#a06e08'" onmouseout="this.style.background='var(--ag)'">
-      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-      Connect on LinkedIn
-    </a>
+    <button onclick="generateInsights()" id="gen-btn" class="ask-btn flex items-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.93 2.93l1.41 1.41M9.66 9.66l1.41 1.41M2.93 11.07l1.41-1.41M9.66 4.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Generate insights
+    </button>
+  </div>
+
+  <!-- Insight cards grid -->
+  <div id="insight-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+    <div class="insight-card info flex items-center justify-center h-24 text-sm text-gray-400">
+      Select a field and click "Generate insights" to get AI recommendations
+    </div>
+    <div class="insight-card info flex items-center justify-center h-24 text-sm text-gray-400 md:block hidden"></div>
+  </div>
+
+  <!-- AI question bar -->
+  <div class="border-t border-gray-100 pt-4">
+    <div class="section-label mb-2">Ask a question about your fields</div>
+    <div class="flex gap-2">
+      <input type="text" id="ai-question" class="ai-question-input" placeholder="e.g. Compare all fields for fertilizer needs — or ask anything about timing, costs, risk..."/>
+      <button onclick="askQuestion()" id="ask-btn" class="ask-btn">Ask ↗</button>
+    </div>
+    <div class="flex gap-2 mt-2 flex-wrap">
+      <button class="text-xs text-green-800 bg-green-50 border border-green-200 rounded-full px-3 py-1 cursor-pointer hover:bg-green-100" onclick="quickAsk('Compare all 4 fields for nitrogen needs this week')">Compare fields: nitrogen needs</button>
+      <button class="text-xs text-green-800 bg-green-50 border border-green-200 rounded-full px-3 py-1 cursor-pointer hover:bg-green-100" onclick="quickAsk('Which field has the highest yield risk right now and why?')">Highest yield risk</button>
+      <button class="text-xs text-green-800 bg-green-50 border border-green-200 rounded-full px-3 py-1 cursor-pointer hover:bg-green-100" onclick="quickAsk('What should I prioritize across all fields this week?')">This week\'s priorities</button>
+    </div>
+    <div id="ai-answer" class="mt-4 hidden"></div>
+  </div>
+</div>
+
+<!-- ── WEATHER + FIELD METRICS (side by side) ── -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+  <!-- WEATHER -->
+  <div class="card p-5">
+    <div class="section-label">7-day forecast</div>
+    <div id="weather-grid" class="grid grid-cols-7 gap-1 mb-4">
+      <div class="weather-day col-span-7 text-center text-sm text-gray-400 py-4">Loading weather...</div>
+    </div>
+    <div class="grid grid-cols-2 gap-3" id="today-conditions">
+      <div class="stat-box"><div class="text-xs text-gray-500">Cloud cover</div><div class="font-semibold mono" id="cloud-cover">—</div></div>
+      <div class="stat-box"><div class="text-xs text-gray-500">Humidity</div><div class="font-semibold mono" id="humidity">—</div></div>
+      <div class="stat-box"><div class="text-xs text-gray-500">Dew point</div><div class="font-semibold mono" id="dew-point">—</div></div>
+      <div class="stat-box"><div class="text-xs text-gray-500">Wind</div><div class="font-semibold mono" id="wind">—</div></div>
     </div>
   </div>
-</footer>
 
-<!-- ══════════════════════════════════════════════════
-     SCRIPTS
-══════════════════════════════════════════════════ -->
+  <!-- FIELD METRICS -->
+  <div class="card p-5">
+    <div class="section-label">Field metrics</div>
+    <div class="space-y-4">
+      <!-- GDD -->
+      <div class="stat-box">
+        <div class="flex justify-between items-start mb-1">
+          <div class="text-xs text-gray-500">Season progress (GDD base 50°F)</div>
+          <div class="mono text-sm font-semibold" id="gdd-total">—</div>
+        </div>
+        <div class="gdd-bar-bg"><div class="gdd-bar-fill" id="gdd-bar" style="width:0%"></div></div>
+        <div class="flex justify-between text-xs text-gray-400 mt-1">
+          <span id="gdd-planted">Planted: —</span>
+          <span id="gdd-stage">Stage: —</span>
+          <span id="gdd-harvest">Est. harvest: —</span>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="stat-box"><div class="text-xs text-gray-500">Field area</div><div class="font-semibold mono" id="m-acres">—</div></div>
+        <div class="stat-box"><div class="text-xs text-gray-500">Days since planting</div><div class="font-semibold mono" id="m-days">—</div></div>
+        <div class="stat-box"><div class="text-xs text-gray-500">Crop</div><div class="font-semibold" id="m-crop">—</div></div>
+        <div class="stat-box"><div class="text-xs text-gray-500">Soil type</div><div class="font-semibold text-sm" id="m-soil">—</div></div>
+      </div>
+
+      <!-- Input costs -->
+      <div>
+        <div class="text-xs text-gray-500 mb-2 font-medium">Input costs (edit to match your supplier)</div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">N fertilizer ($/ton)</label>
+            <input type="number" id="cost-n" value="866" class="w-full" onchange="saveCostPrefs()"/>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Diesel ($/gal)</label>
+            <input type="number" id="cost-fuel" value="3.85" step="0.01" class="w-full" onchange="saveCostPrefs()"/>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Seed ($/bag)</label>
+            <input type="number" id="cost-seed" value="310" class="w-full" onchange="saveCostPrefs()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUPPLIER PREFERENCES ── -->
+<div class="card p-5">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="section-label mb-0">Preferred suppliers</div>
+      <div class="text-xs text-gray-400 mt-0.5">AI uses your preferred suppliers' pricing in cost recommendations</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <label class="text-xs text-gray-500">Search radius</label>
+      <select id="radius-select" onchange="filterSuppliers()">
+        <option value="25">25 mi</option>
+        <option value="50" selected>50 mi</option>
+        <option value="100">100 mi</option>
+        <option value="150">150 mi</option>
+      </select>
+    </div>
+  </div>
+  <div id="supplier-list" class="space-y-3"></div>
+</div>
+
+<!-- ── FIELD HISTORY ── -->
+<div class="card p-5">
+  <div class="section-label">Field activity log</div>
+  <div id="history-list" class="space-y-0">
+    <div class="text-sm text-gray-400">Select a field to view history</div>
+  </div>
+</div>
+
+<!-- ── MACHINERY ESTIMATES ── -->
+<div class="card p-5">
+  <div class="section-label">Machinery execution estimates (85% efficiency)</div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-xs text-gray-500 border-b border-gray-100">
+        <th class="pb-2 font-medium">Equipment</th>
+        <th class="pb-2 font-medium">Working width</th>
+        <th class="pb-2 font-medium">Avg speed</th>
+        <th class="pb-2 font-medium">Est. field time</th>
+      </tr></thead>
+      <tbody id="machinery-table">
+        <tr><td colspan="4" class="py-3 text-gray-400">Select a field to calculate</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── PM FOOTER / KPIs ── -->
+<div class="card p-5 bg-[#fafaf7]">
+  <div class="section-label">Metrics I'd track — product outcome KPIs</div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="kpi-card">
+      <div class="text-xs text-gray-500 mb-1">Recommendation adoption rate</div>
+      <div class="font-semibold text-lg mono" id="kpi-adoption">—%</div>
+      <div class="text-xs text-gray-400 mt-1">Insights acted on vs. dismissed</div>
+    </div>
+    <div class="kpi-card">
+      <div class="text-xs text-gray-500 mb-1">Avg. dollar value per insight</div>
+      <div class="font-semibold text-lg mono">$18–$34/ac</div>
+      <div class="text-xs text-gray-400 mt-1">Estimated value per recommendation</div>
+    </div>
+    <div class="kpi-card">
+      <div class="text-xs text-gray-500 mb-1">Input cost reduction</div>
+      <div class="font-semibold text-lg mono">8–14%</div>
+      <div class="text-xs text-gray-400 mt-1">Target vs. uniform application baseline</div>
+    </div>
+    <div class="kpi-card">
+      <div class="text-xs text-gray-500 mb-1">Time-to-decision</div>
+      <div class="font-semibold text-lg mono">&lt; 60 sec</div>
+      <div class="text-xs text-gray-400 mt-1">From field open to actionable rec</div>
+    </div>
+  </div>
+  <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+    <p class="text-xs text-gray-400">Built for Performance Farming · The Green Tractor Company · Field Intelligence Platform · <a href="https://www.linkedin.com/in/greghebner/" class="text-green-700 underline" target="_blank">Gregory J. Hebner on LinkedIn</a></p>
+    <span class="text-xs text-gray-300 mono">EQIP §2202 eligible</span>
+  </div>
+</div>
+
+</div><!-- end max-w container -->
+
 <script>
-'use strict';
+// ── CONFIG ──
+const SUPABASE_URL = 'https://yjzhcpiuqpzqgpewhqwe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Sn7HXf3-wI2AZABqaIKq6A_iPOBQsAq';
+const ANTHROPIC_KEY = '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';
 
-/* ══════════════════════
-   MAP — Leaflet
-══════════════════════ */
-const DEFAULT_LAT = 38.8338, DEFAULT_LON = -104.8214;
-let activeLat = DEFAULT_LAT, activeLon = DEFAULT_LON;
-let drawMode = false, radiusMode = false;
-let drawnPts = [], drawnMarkers = [], drawnPolygon = null;
-let radiusCenter = null, radiusCircle = null, radiusCenterMarker = null;
-let mapWeatherTimer = null;
-let savedFields = {}; // name -> {type:'polygon'|'circle', pts/center+radius, acres, perim, lat, lon}
-let activeFieldName = null;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const map = L.map('field-map', { zoomControl: true }).setView([DEFAULT_LAT, DEFAULT_LON], 13);
+// ── STATE ──
+let currentField = null;
+let allFields = [];
+let allSuppliers = [];
+let allHistory = [];
+let map = null;
+let marker = null;
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors', maxZoom: 19,
-}).addTo(map);
-
-function goldMarker(latlng) {
-  return L.marker(latlng, {
-    icon: L.divIcon({
-      className:'',
-      html:`<div style="width:10px;height:10px;border-radius:50%;background:#F0B429;border:2px solid #fff;box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>`,
-      iconSize:[10,10], iconAnchor:[5,5],
-    })
-  });
-}
-
-map.on('moveend', () => {
-  const c = map.getCenter();
-  activeLat = c.lat; activeLon = c.lng;
-  document.getElementById('map-coords-badge').textContent =
-    `${activeLat.toFixed(4)}° N, ${Math.abs(activeLon).toFixed(4)}° W`;
-  clearTimeout(mapWeatherTimer);
-  mapWeatherTimer = setTimeout(() => fetchWeather(activeLat, activeLon, 'Map location'), 700);
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', async () => {
+  initMap();
+  await loadFields();
+  await selectField('f1');
 });
 
-/* ─── Polygon draw mode ─── */
-map.on('click', e => {
-  const latlng = [e.latlng.lat, e.latlng.lng];
-
-  if (drawMode) {
-    drawnPts.push(latlng);
-    drawnMarkers.push(goldMarker(e.latlng).addTo(map));
-    if (drawnPolygon) map.removeLayer(drawnPolygon);
-    if (drawnPts.length >= 3) {
-      drawnPolygon = L.polygon(drawnPts, {
-        color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
-      }).addTo(map);
-      const ac = calcAcres(drawnPts);
-      updateFieldMetrics(ac, 'drawn');
-      document.getElementById('save-field-btn').style.display = 'inline-block';
-    }
-    document.getElementById('draw-status-badge').textContent =
-      `✏ ${drawnPts.length} point${drawnPts.length!==1?'s':''} placed — keep clicking to add more`;
-    if (drawnPts.length === 1) {
-      document.getElementById('map-coords-badge').textContent =
-        `${latlng[0].toFixed(4)}° N, ${Math.abs(latlng[1]).toFixed(4)}° W`;
-    }
-    return;
-  }
-
-  if (radiusMode) {
-    if (!radiusCenter) {
-      radiusCenter = latlng;
-      radiusCenterMarker = goldMarker(e.latlng).addTo(map);
-      document.getElementById('draw-status-badge').textContent =
-        '◎ Center set — click again to set the radius';
-      document.getElementById('map-coords-badge').textContent =
-        `${latlng[0].toFixed(4)}° N, ${Math.abs(latlng[1]).toFixed(4)}° W`;
-    } else {
-      const radiusM = haverMiles(radiusCenter[0],radiusCenter[1],latlng[0],latlng[1]) * 1609.34;
-      if (radiusCircle) map.removeLayer(radiusCircle);
-      radiusCircle = L.circle(radiusCenter, {
-        radius: radiusM, color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
-      }).addTo(map);
-      const acres = Math.PI * Math.pow(radiusM,2) * 0.000247105;
-      const perimMiles = (2 * Math.PI * radiusM) / 1609.34;
-      updateFieldMetrics(acres, 'drawn');
-      document.getElementById('perim-display').textContent = perimMiles.toFixed(2);
-      document.getElementById('draw-status-badge').textContent =
-        `◎ Radius set (${(radiusM/1609.34).toFixed(2)} mi) — toggle off or click "Clear" to redo`;
-      document.getElementById('save-field-btn').style.display = 'inline-block';
-    }
-    return;
-  }
-});
-
-function setDrawStatusVisible(show){
-  document.getElementById('draw-status-badge').style.display = show ? 'block' : 'none';
+function initMap() {
+  map = L.map('map').setView([41.5, -87.5], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 18
+  }).addTo(map);
 }
 
-function toggleDraw() {
-  // turn off radius mode first
-  if (radiusMode) toggleRadius();
-  drawMode = !drawMode;
-  const btn = document.getElementById('draw-toggle-btn');
-  const clr = document.getElementById('clear-field-btn');
-  if (drawMode) {
-    btn.textContent = '⏹ Finish Drawing';
-    btn.classList.add('active');
-    map.getContainer().style.cursor = 'crosshair';
-    clr.style.display = 'inline-block';
-    document.getElementById('draw-status-badge').textContent = '✏ Click map to add polygon points';
-    setDrawStatusVisible(true);
-  } else {
-    btn.textContent = '✏ Draw Field';
-    btn.classList.remove('active');
-    map.getContainer().style.cursor = '';
-    setDrawStatusVisible(false);
-  }
+async function loadFields() {
+  const { data } = await sb.from('fields').select('*');
+  if (data) allFields = data;
 }
 
-function toggleRadius() {
-  if (drawMode) toggleDraw();
-  radiusMode = !radiusMode;
-  const btn = document.getElementById('radius-toggle-btn');
-  const clr = document.getElementById('clear-field-btn');
-  if (radiusMode) {
-    btn.textContent = '⏹ Finish Radius';
-    btn.classList.add('active');
-    map.getContainer().style.cursor = 'crosshair';
-    clr.style.display = 'inline-block';
-    document.getElementById('draw-status-badge').textContent = '◎ Click map to set field center point';
-    setDrawStatusVisible(true);
-  } else {
-    btn.textContent = '◎ Radius Field';
-    btn.classList.remove('active');
-    map.getContainer().style.cursor = '';
-    setDrawStatusVisible(false);
-  }
-}
+async function selectField(fieldId) {
+  currentField = allFields.find(f => f.id === fieldId);
+  if (!currentField) return;
 
-function clearField() {
-  drawnPts = [];
-  drawnMarkers.forEach(m => map.removeLayer(m));
-  drawnMarkers = [];
-  if (drawnPolygon) { map.removeLayer(drawnPolygon); drawnPolygon = null; }
-  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
-  if (radiusCenterMarker) { map.removeLayer(radiusCenterMarker); radiusCenterMarker = null; }
-  radiusCenter = null;
-  drawMode = false; radiusMode = false;
-
-  document.getElementById('draw-toggle-btn').textContent = '✏ Draw Field';
-  document.getElementById('draw-toggle-btn').classList.remove('active');
-  document.getElementById('radius-toggle-btn').textContent = '◎ Radius Field';
-  document.getElementById('radius-toggle-btn').classList.remove('active');
-  document.getElementById('clear-field-btn').style.display = 'none';
-  document.getElementById('save-field-btn').style.display = 'none';
-  setDrawStatusVisible(false);
-  map.getContainer().style.cursor = '';
-
-  updateFieldMetrics(160, 'sample');
-  document.getElementById('perim-display').textContent = '—';
-  document.getElementById('field-selector').value = '';
-  activeFieldName = null;
-}
-
-/* Shoelace area in acres (Haversine-based) */
-function calcAcres(pts) {
-  if (pts.length < 3) return 0;
-  const R = 6371000;
-  let area = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const j = (i + 1) % pts.length;
-    const lat1 = pts[i][0] * Math.PI / 180;
-    const lat2 = pts[j][0] * Math.PI / 180;
-    const dLon = (pts[j][1] - pts[i][1]) * Math.PI / 180;
-    area += dLon * (2 + Math.sin(lat1) + Math.sin(lat2));
-  }
-  return Math.abs(area * R * R / 2) * 0.000247105;
-}
-
-/* Perimeter in miles */
-function calcPerimMiles(pts) {
-  if (pts.length < 2) return 0;
-  let d = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const j = (i + 1) % pts.length;
-    d += haverMiles(pts[i][0], pts[i][1], pts[j][0], pts[j][1]);
-  }
-  return d;
-}
-function haverMiles(lat1,lon1,lat2,lon2) {
-  const R=3958.8, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-function macHours(acres, widthFt, mph) { return acres / ((widthFt/5280) * mph * 0.85); }
-function fmtH(h) {
-  const hr=Math.floor(h), mn=Math.round((h-hr)*60);
-  return hr===0?`${mn}m`: mn>0?`${hr}h ${mn}m`:`${hr}h`;
-}
-
-function updateFieldMetrics(acres, src) {
-  document.getElementById('acres-display').textContent = src==='drawn' ? acres.toFixed(1) : acres;
-  document.getElementById('field-src-label').textContent = src==='drawn' ? 'drawn field' : 'sample 160 ac';
-  document.getElementById('t-planter').textContent  = fmtH(macHours(acres, 60, 5.5));
-  document.getElementById('t-combine').textContent  = fmtH(macHours(acres, 40, 4.5));
-  document.getElementById('t-sprayer').textContent  = fmtH(macHours(acres, 120, 12));
-  if (src==='drawn' && drawnPts.length >= 3) {
-    const p = calcPerimMiles(drawnPts);
-    document.getElementById('perim-display').textContent = p.toFixed(2);
-  }
-}
-
-updateFieldMetrics(160, 'sample');
-
-/* ══════════════════════
-   SAVE / LOAD / DELETE FIELDS
-══════════════════════ */
-function saveField() {
-  let name = activeFieldName;
-  if (!name) {
-    name = prompt('Name this field:');
-    if (!name) return;
-    name = name.trim();
-    if (!name) return;
-  }
-
-  let entry;
-  if (drawnPts.length >= 3) {
-    entry = {
-      type: 'polygon',
-      pts: drawnPts.slice(),
-      acres: calcAcres(drawnPts),
-      perim: calcPerimMiles(drawnPts),
-      center: drawnPts.reduce((acc,p)=>[acc[0]+p[0]/drawnPts.length, acc[1]+p[1]/drawnPts.length], [0,0]),
-    };
-  } else if (radiusCenter && radiusCircle) {
-    const radiusM = radiusCircle.getRadius();
-    entry = {
-      type: 'circle',
-      center: radiusCenter,
-      radiusM: radiusM,
-      acres: Math.PI * Math.pow(radiusM,2) * 0.000247105,
-      perim: (2 * Math.PI * radiusM) / 1609.34,
-    };
-  } else {
-    alert('Draw or define a field on the map before saving.');
-    return;
-  }
-
-  // crop/planting info from the metrics card
-  entry.crop = document.getElementById('gdd-crop').value;
-  entry.plantDate = document.getElementById('gdd-plant').value;
-
-  savedFields[name] = entry;
-  activeFieldName = name;
-  refreshFieldSelector(name);
-}
-
-function refreshFieldSelector(selectName) {
-  const sel = document.getElementById('field-selector');
-  sel.innerHTML = '<option value="">— Select a saved field —</option>';
-  Object.keys(savedFields).forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name; opt.textContent = name;
-    sel.appendChild(opt);
+  // Update tab buttons
+  document.querySelectorAll('.field-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.field === fieldId);
   });
-  if (selectName) sel.value = selectName;
+
+  // Update map
+  if (marker) map.removeLayer(marker);
+  const lat = parseFloat(currentField.lat);
+  const lng = parseFloat(currentField.lng);
+  marker = L.marker([lat, lng]).addTo(map)
+    .bindPopup(`<b>${currentField.name}</b><br>${currentField.acres} ac · ${currentField.crop}`).openPopup();
+  map.setView([lat, lng], 11);
+
+  // Update field summary bar
+  const planted = new Date(currentField.planted_date);
+  const days = Math.floor((new Date('2026-06-23') - planted) / 86400000);
+  document.getElementById('field-summary').innerHTML = `
+    <span class="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v10M1.5 6.5h10" stroke="#8a8878" stroke-width="1.5" stroke-linecap="round"/></svg> ${currentField.acres} acres</span>
+    <span class="flex items-center gap-1">📍 ${currentField.county}, ${currentField.state}</span>
+    <span class="flex items-center gap-1">🌱 Planted ${planted.toLocaleDateString('en-US', {month:'short', day:'numeric'})}</span>
+    <span class="flex items-center gap-1">🪱 ${currentField.soil_type}</span>
+  `;
+
+  // Load weather, metrics, suppliers, history in parallel
+  await Promise.all([
+    fetchWeather(lat, lng),
+    updateFieldMetrics(),
+    loadSuppliers(fieldId),
+    loadHistory(fieldId),
+    loadCostPrefs(fieldId),
+  ]);
+
+  updateMachinery();
+  updateKPIs();
+  // Auto-generate insights
+  generateInsights();
 }
 
-function loadField(name) {
-  if (!name) { activeFieldName = null; return; }
-  const f = savedFields[name];
-  if (!f) return;
-  activeFieldName = name;
-
-  // clear current drawing
-  drawnPts = [];
-  drawnMarkers.forEach(m => map.removeLayer(m));
-  drawnMarkers = [];
-  if (drawnPolygon) { map.removeLayer(drawnPolygon); drawnPolygon = null; }
-  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
-  if (radiusCenterMarker) { map.removeLayer(radiusCenterMarker); radiusCenterMarker = null; }
-  radiusCenter = null;
-
-  if (f.type === 'polygon') {
-    drawnPts = f.pts.slice();
-    drawnPts.forEach(p => drawnMarkers.push(goldMarker(p).addTo(map)));
-    drawnPolygon = L.polygon(drawnPts, {
-      color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
-    }).addTo(map);
-    document.getElementById('perim-display').textContent = f.perim.toFixed(2);
-    map.fitBounds(drawnPolygon.getBounds(), { padding:[30,30] });
-  } else {
-    radiusCenter = f.center;
-    radiusCenterMarker = goldMarker(f.center).addTo(map);
-    radiusCircle = L.circle(f.center, {
-      radius: f.radiusM, color:'#6DAF3A', weight:2, fillColor:'#6DAF3A', fillOpacity:0.15,
-    }).addTo(map);
-    document.getElementById('perim-display').textContent = f.perim.toFixed(2);
-    map.fitBounds(radiusCircle.getBounds(), { padding:[30,30] });
-  }
-
-  updateFieldMetrics(f.acres, 'drawn');
-  document.getElementById('save-field-btn').style.display = 'inline-block';
-  document.getElementById('clear-field-btn').style.display = 'inline-block';
-
-  if (f.crop) document.getElementById('gdd-crop').value = f.crop;
-  if (f.plantDate) document.getElementById('gdd-plant').value = f.plantDate;
-  calcGDD();
-}
-
-function deleteSelectedField() {
-  const sel = document.getElementById('field-selector');
-  const name = sel.value;
-  if (!name) { alert('Select a saved field to delete.'); return; }
-  if (!confirm(`Delete saved field "${name}"?`)) return;
-  delete savedFields[name];
-  refreshFieldSelector();
-  clearField();
-}
-
-/* ══════════════════════
-   MAP SEARCH (city / zip / GPS)
-══════════════════════ */
-async function mapSearch() {
-  const raw = document.getElementById('map-search-input').value.trim();
-  if (!raw) return;
-
-  const coordMatch = raw.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
-  if (coordMatch) {
-    const lat = parseFloat(coordMatch[1]);
-    const lon = parseFloat(coordMatch[2]);
-    const label = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-    map.setView([lat, lon], 13);
-    await fetchWeather(lat, lon, label);
-    document.getElementById('map-loc-badge').textContent = label;
-    return;
-  }
-
+async function fetchWeather(lat, lng) {
   try {
-    const res  = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(raw)}&count=1&language=en&format=json`);
-    const data = await res.json();
-    if (!data.results?.length) { alert('Location not found. Try a city name or "lat, lon".'); return; }
-    const { latitude, longitude, name, admin1, country_code } = data.results[0];
-    const label = [name, admin1, country_code].filter(Boolean).join(', ');
-    map.setView([latitude, longitude], 13);
-    await fetchWeather(latitude, longitude, label);
-    document.getElementById('map-loc-badge').textContent = label;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode,windspeed_10m_max&hourly=relativehumidity_2m,dewpoint_2m,cloudcover&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=7`;
+    const res = await fetch(url);
+    const d = await res.json();
+
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const wmoIcon = code => {
+      if (code <= 1) return '☀️';
+      if (code <= 3) return '⛅';
+      if (code <= 49) return '🌫';
+      if (code <= 67) return '🌧';
+      if (code <= 77) return '🌨';
+      if (code <= 82) return '🌦';
+      return '⛈';
+    };
+
+    let html = '';
+    for (let i = 0; i < 7; i++) {
+      const dt = new Date(d.daily.time[i]);
+      const dayLabel = i === 0 ? 'Today' : days[dt.getDay()];
+      html += `<div class="weather-day">
+        <div class="text-xs text-gray-500 font-medium">${dayLabel}</div>
+        <div class="text-lg my-1">${wmoIcon(d.daily.weathercode[i])}</div>
+        <div class="text-xs font-semibold">${Math.round(d.daily.temperature_2m_max[i])}°</div>
+        <div class="text-xs text-gray-400">${Math.round(d.daily.temperature_2m_min[i])}°</div>
+        <div class="text-xs text-blue-500 mt-1">${d.daily.precipitation_probability_max[i]}%</div>
+      </div>`;
+    }
+    document.getElementById('weather-grid').innerHTML = html;
+
+    // Today conditions from hourly (noon index = 12)
+    const hi = Math.round(d.daily.temperature_2m_max[0]);
+    const lo = Math.round(d.daily.temperature_2m_min[0]);
+    document.getElementById('cloud-cover').textContent = Math.round(d.hourly.cloudcover[12]) + '%';
+    document.getElementById('humidity').textContent = Math.round(d.hourly.relativehumidity_2m[12]) + '%';
+    document.getElementById('dew-point').textContent = Math.round(d.hourly.dewpoint_2m[12]) + '°F';
+    document.getElementById('wind').textContent = Math.round(d.daily.windspeed_10m_max[0]) + ' mph';
   } catch(e) {
-    alert('Search failed. Check your connection.');
+    document.getElementById('weather-grid').innerHTML = '<div class="col-span-7 text-sm text-gray-400 py-4 text-center">Weather unavailable</div>';
   }
 }
 
-/* ══════════════════════
-   WEATHER — 7-day forecast
-══════════════════════ */
-function cToF(c)    { return Math.round(c * 9/5 + 32); }
-function hpaToInHg(h){ return (h * 0.02953).toFixed(2); }
+function updateFieldMetrics() {
+  if (!currentField) return;
+  const planted = new Date(currentField.planted_date);
+  const today = new Date('2026-06-23');
+  const days = Math.floor((today - planted) / 86400000);
 
-function wmoText(code) {
-  if (code===0) return 'Clear sky';
-  if (code<=3)  return 'Partly cloudy';
-  if (code<=29) return 'Drizzle / Rain';
-  if (code<=39) return 'Snow';
-  if (code<=49) return 'Fog';
-  if (code<=59) return 'Drizzle';
-  if (code<=69) return 'Rain';
-  if (code<=79) return 'Snow';
-  if (code<=84) return 'Rain showers';
-  if (code<=94) return 'Thunderstorm';
-  return 'Severe storm';
-}
-function wmoIcon(code) {
-  if (code===0) return '☀️';
-  if (code<=3)  return '⛅';
-  if (code<=49) return '🌫️';
-  if (code<=59) return '🌦️';
-  if (code<=69) return '🌧️';
-  if (code<=79) return '🌨️';
-  if (code<=84) return '🌦️';
-  return '⛈️';
+  // GDD lookup (pre-calculated)
+  const gddData = {
+    f1: { gdd: 666, stage: 'V10-V12', harvestDays: 171, maxGdd: 2700 },
+    f2: { gdd: 439, stage: 'V4-V6', harvestDays: 168, maxGdd: 2200 },
+    f3: { gdd: 780, stage: 'V10-V12', harvestDays: 153, maxGdd: 2700 },
+    f4: { gdd: 556, stage: 'R1 — beginning flower', harvestDays: 136, maxGdd: 2200 },
+  };
+  const g = gddData[currentField.id];
+  const pct = Math.min(100, Math.round((g.gdd / g.maxGdd) * 100));
+
+  document.getElementById('gdd-total').textContent = g.gdd + ' GDD';
+  document.getElementById('gdd-bar').style.width = pct + '%';
+  document.getElementById('gdd-planted').textContent = 'Planted: ' + planted.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  document.getElementById('gdd-stage').textContent = 'Stage: ' + g.stage;
+  document.getElementById('gdd-harvest').textContent = 'Est. harvest: ~' + g.harvestDays + ' days';
+  document.getElementById('m-acres').textContent = currentField.acres + ' ac';
+  document.getElementById('m-days').textContent = days + ' days';
+  document.getElementById('m-crop').textContent = currentField.crop;
+  document.getElementById('m-soil').textContent = currentField.soil_type;
 }
 
-const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const WIND_DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-function windDir(deg){ return WIND_DIRS[Math.round(deg/22.5) % 16]; }
+async function loadCostPrefs(fieldId) {
+  const { data } = await sb.from('cost_prefs').select('*').eq('field_id', fieldId).single();
+  if (data) {
+    document.getElementById('cost-n').value = data.n_price;
+    document.getElementById('cost-fuel').value = data.fuel_price;
+    document.getElementById('cost-seed').value = data.seed_price;
+    document.getElementById('radius-select').value = data.radius_mi;
+  }
+}
 
-let forecastDayData = []; // per-day pill data for click switching
+async function saveCostPrefs() {
+  if (!currentField) return;
+  const prefs = {
+    field_id: currentField.id,
+    n_price: parseFloat(document.getElementById('cost-n').value),
+    fuel_price: parseFloat(document.getElementById('cost-fuel').value),
+    seed_price: parseFloat(document.getElementById('cost-seed').value),
+    radius_mi: parseInt(document.getElementById('radius-select').value),
+    updated_at: new Date().toISOString()
+  };
+  await sb.from('cost_prefs').upsert(prefs, { onConflict: 'field_id' });
+}
 
-async function fetchWeather(lat, lon, locName) {
-  setWeatherLoading(true);
+async function loadSuppliers(fieldId) {
+  const { data } = await sb.from('suppliers').select('*').eq('state', currentField.state);
+  allSuppliers = data || [];
+  renderSuppliers();
+}
+
+function filterSuppliers() {
+  saveCostPrefs();
+  renderSuppliers();
+}
+
+function renderSuppliers() {
+  const radius = parseInt(document.getElementById('radius-select').value);
+  const filtered = allSuppliers.filter(s => {
+    const dist = s.distance_from_field[currentField.id];
+    return dist && parseInt(dist) <= radius;
+  });
+
+  if (!filtered.length) {
+    document.getElementById('supplier-list').innerHTML = '<p class="text-sm text-gray-400">No suppliers within selected radius.</p>';
+    return;
+  }
+
+  const relColors = { 'long-term': 'text-green-700 bg-green-50', 'occasional': 'text-blue-700 bg-blue-50', 'new': 'text-amber-700 bg-amber-50' };
+  document.getElementById('supplier-list').innerHTML = filtered.map(s => `
+    <div class="border border-gray-100 rounded-lg p-4">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div class="font-medium text-sm">${s.name}</div>
+          <div class="text-xs text-gray-500 mt-0.5">${s.distance_from_field[currentField.id] || '?'} mi · ${s.delivery} · ${s.payment_terms}</div>
+          <div class="text-xs text-gray-400 italic mt-1">"${s.notes}"</div>
+        </div>
+        <div class="flex flex-wrap gap-2 items-start">
+          <span class="tag ${relColors[s.relationship] || 'text-gray-600 bg-gray-50'}">${s.relationship}</span>
+          ${s.certification !== 'standard' ? `<span class="tag text-teal-700 bg-teal-50">${s.certification}</span>` : ''}
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-3">
+        <div class="stat-box py-2"><div class="text-xs text-gray-400">N fertilizer</div><div class="mono text-sm font-semibold">$${s.n_price}/ton</div></div>
+        <div class="stat-box py-2"><div class="text-xs text-gray-400">Diesel</div><div class="mono text-sm font-semibold">$${s.fuel_price}/gal</div></div>
+        <div class="stat-box py-2"><div class="text-xs text-gray-400">Seed</div><div class="mono text-sm font-semibold">$${s.seed_price}/bag</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadHistory(fieldId) {
+  const { data } = await sb.from('field_history').select('*').eq('field_id', fieldId).order('event_date', { ascending: false });
+  allHistory = data || [];
+  const dotClass = { plant: 'dot-plant', spray: 'dot-spray', fertilize: 'dot-fertilize' };
+  const labels = { plant: 'Plant', spray: 'Spray', fertilize: 'Fertilize' };
+  document.getElementById('history-list').innerHTML = allHistory.map(h => `
+    <div class="history-row">
+      <div class="history-dot ${dotClass[h.event_type] || 'bg-gray-400'}"></div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-gray-700">${labels[h.event_type] || h.event_type}</span>
+          <span class="text-xs text-gray-400">${new Date(h.event_date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</span>
+          <span class="text-xs text-gray-600 font-medium">${h.product || ''}</span>
+        </div>
+        <div class="text-xs text-gray-400 mt-0.5">${h.rate ? h.rate + ' · ' : ''}${h.notes || ''}</div>
+      </div>
+    </div>
+  `).join('') || '<div class="text-sm text-gray-400">No history found</div>';
+}
+
+function updateMachinery() {
+  if (!currentField) return;
+  const acres = currentField.acres;
+  const equipment = [
+    { name: '24-Row Planter', width: 60, speed: 5.5 },
+    { name: 'S7 Combine', width: 40, speed: 4.5 },
+    { name: 'See & Spray™ Sprayer', width: 120, speed: 12 },
+  ];
+  document.getElementById('machinery-table').innerHTML = equipment.map(e => {
+    const acPerHr = (e.width / 43560) * 5280 * e.speed * 0.85;
+    const hrs = (acres / acPerHr).toFixed(1);
+    return `<tr class="border-b border-gray-50">
+      <td class="py-2 font-medium">${e.name}</td>
+      <td class="py-2 text-gray-500">${e.width} ft</td>
+      <td class="py-2 text-gray-500">${e.speed} mph</td>
+      <td class="py-2 mono font-semibold">${hrs} hrs</td>
+    </tr>`;
+  }).join('');
+}
+
+async function updateKPIs() {
+  const { data } = await sb.from('ai_insights').select('acted_on, dismissed');
+  if (!data || !data.length) { document.getElementById('kpi-adoption').textContent = '—%'; return; }
+  const acted = data.filter(d => d.acted_on).length;
+  const total = data.filter(d => d.acted_on || d.dismissed).length;
+  document.getElementById('kpi-adoption').textContent = total ? Math.round((acted/total)*100) + '%' : '—%';
+}
+
+async function generateInsights() {
+  if (!currentField) return;
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating...';
+
+  const grid = document.getElementById('insight-grid');
+  grid.innerHTML = `<div class="insight-card col-span-2 flex items-center justify-center gap-3 h-32 text-sm text-gray-400"><span class="spinner"></span> Analyzing field data, weather, and input costs...</div>`;
+
+  // Build context
+  const gddData = { f1: { gdd: 666, stage: 'V10-V12', harvestDays: 171 }, f2: { gdd: 439, stage: 'V4-V6', harvestDays: 168 }, f3: { gdd: 780, stage: 'V10-V12', harvestDays: 153 }, f4: { gdd: 556, stage: 'R1 beginning flower', harvestDays: 136 } };
+  const g = gddData[currentField.id];
+  const nPrice = document.getElementById('cost-n').value;
+  const fuelPrice = document.getElementById('cost-fuel').value;
+  const historyText = allHistory.map(h => `${h.event_date}: ${h.event_type} — ${h.product} at ${h.rate}. ${h.notes}`).join('\n');
+  const planted = new Date(currentField.planted_date);
+  const days = Math.floor((new Date('2026-06-23') - planted) / 86400000);
+
+  const prompt = `You are an agronomic AI advisor for a Midwest farm operation. Generate exactly 4 concise, actionable field recommendations in JSON format.
+
+FIELD DATA:
+- Field: ${currentField.name}, ${currentField.county}, ${currentField.state}
+- Crop: ${currentField.crop}, ${currentField.acres} acres
+- Soil: ${currentField.soil_type}
+- Planted: ${currentField.planted_date} (${days} days ago)
+- GDD accumulated: ${g.gdd} (stage: ${g.stage})
+- Est. days to harvest: ${g.harvestDays}
+- N fertilizer cost: $${nPrice}/ton
+- Diesel: $${fuelPrice}/gal
+- Today's date: June 23, 2026
+
+FIELD HISTORY:
+${historyText}
+
+Return ONLY a JSON array with exactly 4 objects, no markdown, no explanation:
+[
+  {
+    "type": "spray|nitrogen|risk|harvest",
+    "urgency": "urgent|advisory|info|timing",
+    "title": "short action title (5-8 words)",
+    "recommendation": "2-3 sentence plain-English recommendation. Be specific to this crop stage and field history.",
+    "dollar_value": 0,
+    "dollar_label": "short label like 'est. savings on this field' or 'yield protection value'"
+  }
+]
+
+Make dollar values realistic and specific to the acreage. Urgent = needs action within 48 hours.`;
+
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-      + `&current=weather_code`
-      + `&hourly=cloud_cover,dew_point_2m,relative_humidity_2m,pressure_msl`
-      + `&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant`
-      + `&temperature_unit=celsius&precipitation_unit=inch&wind_speed_unit=mph&timezone=auto&forecast_days=7`;
-    const res  = await fetch(url);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-
-    document.getElementById('w-updated').textContent  = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('weather-loc').textContent = locName;
-
-    // 7-day table rows
-    const rows = document.getElementById('forecast-rows');
-    rows.innerHTML = '';
-    const days = data.daily.time;
-    let hiSum = 0, loSum = 0;
-    forecastDayData = [];
-
-    days.forEach((dateStr, i) => {
-      const d = new Date(dateStr + 'T00:00:00');
-      const dayLabel = i === 0 ? 'Today' : DAY_NAMES[d.getDay()];
-      const hi = cToF(data.daily.temperature_2m_max[i]);
-      const lo = cToF(data.daily.temperature_2m_min[i]);
-      const feelsHi = cToF(data.daily.apparent_temperature_max[i]);
-      const feelsLo = cToF(data.daily.apparent_temperature_min[i]);
-      hiSum += hi; loSum += lo;
-      const cond = wmoText(data.daily.weather_code[i]);
-      const icon = wmoIcon(data.daily.weather_code[i]);
-      const precipPct = data.daily.precipitation_probability_max[i];
-      const precipAmt = data.daily.precipitation_sum[i];
-      const wind = Math.round(data.daily.wind_speed_10m_max[i]);
-      const dir = windDir(data.daily.wind_direction_10m_dominant[i]);
-
-      // midday hourly index for this day (hour 12)
-      const hourIdx = i * 24 + 12;
-      const cloud = data.hourly.cloud_cover[hourIdx];
-      const dew = cToF(data.hourly.dew_point_2m[hourIdx]);
-      const humidity = data.hourly.relative_humidity_2m[hourIdx];
-      const pressure = hpaToInHg(data.hourly.pressure_msl[hourIdx]);
-
-      forecastDayData.push({ dayLabel, cloud, dew, humidity, pressure });
-
-      const row = document.createElement('tr');
-      row.className = 'fc-row';
-      row.dataset.idx = i;
-      row.innerHTML = `
-        <td class="fc-day">${dayLabel}</td>
-        <td class="fc-cond">${icon} ${cond}</td>
-        <td><div class="fc-temps"><span class="hi">${hi}°</span><span class="lo">${lo}°</span><span class="feels">feels ${feelsHi}°/${feelsLo}°</span></div></td>
-        <td class="fc-precip">${precipPct}%<span class="sub">${precipAmt.toFixed(2)} in</span></td>
-        <td class="fc-wind">${wind} mph<span class="sub">${dir}</span></td>
-      `;
-      row.addEventListener('click', () => selectForecastDay(i));
-      rows.appendChild(row);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
     });
+    const data = await res.json();
+    const text = data.content[0].text.trim();
+    const insights = JSON.parse(text);
 
-    // default to today's pills
-    selectForecastDay(0);
+    const urgencyClass = { urgent: 'urgent', advisory: 'advisory', info: 'info', timing: 'timing' };
+    const urgencyIcon = { urgent: '⚠', advisory: '🌿', info: 'ℹ', timing: '⏱' };
 
-    // update field metrics avg hi/lo + GDD
-    const avgHi = Math.round(hiSum / days.length);
-    const avgLo = Math.round(loSum / days.length);
-    document.getElementById('gdd-hilo-display').textContent = `${avgHi}° / ${avgLo}°`;
-    window._avgHi = avgHi; window._avgLo = avgLo;
-    calcGDD();
+    grid.innerHTML = insights.map(ins => `
+      <div class="insight-card ${urgencyClass[ins.urgency] || 'info'}">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="text-sm font-semibold">${urgencyIcon[ins.urgency] || '•'} ${ins.title}</div>
+          ${ins.dollar_value > 0 ? `<span class="dollar-badge flex-shrink-0">$${ins.dollar_value.toLocaleString()}</span>` : ''}
+        </div>
+        <p class="text-xs text-gray-600 leading-relaxed">${ins.recommendation}</p>
+        ${ins.dollar_value > 0 ? `<p class="text-xs text-green-700 mt-2 font-medium">${ins.dollar_label}</p>` : ''}
+        <div class="flex gap-2 mt-3">
+          <button onclick="markActedOn(${ins.dollar_value}, '${ins.type}')" class="text-xs bg-green-50 text-green-800 border border-green-200 rounded px-2 py-1 hover:bg-green-100">Mark as acted on</button>
+          <button onclick="dismissInsight()" class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50">Dismiss</button>
+        </div>
+      </div>
+    `).join('');
 
-    document.getElementById('w-loading').style.display = 'none';
-    document.getElementById('w-data').style.display    = 'block';
-    document.getElementById('w-error').style.display   = 'none';
+    // Save to DB
+    for (const ins of insights) {
+      await sb.from('ai_insights').insert({
+        field_id: currentField.id,
+        rec_type: ins.type,
+        rec_text: ins.recommendation,
+        dollar_value: ins.dollar_value,
+        acted_on: false,
+        dismissed: false
+      });
+    }
   } catch(e) {
-    setWeatherLoading(false, true);
+    grid.innerHTML = `<div class="insight-card col-span-2 text-sm text-red-600 p-4">Could not generate insights. Check API key configuration. Error: ${e.message}</div>`;
   }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.93 2.93l1.41 1.41M9.66 9.66l1.41 1.41M2.93 11.07l1.41-1.41M9.66 4.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Regenerate';
 }
 
-function selectForecastDay(idx) {
-  const d = forecastDayData[idx];
-  if (!d) return;
-  document.getElementById('detail-day-lbl').textContent = d.dayLabel === 'Today' ? "Today's Conditions" : `${d.dayLabel} Conditions`;
-  document.getElementById('w-cloud').textContent    = d.cloud + '%';
-  document.getElementById('w-dewpoint').textContent = d.dew + '°F';
-  document.getElementById('w-humidity').textContent = d.humidity + '%';
-  document.getElementById('w-pressure').textContent = d.pressure + ' inHg';
-
-  document.querySelectorAll('.fc-row').forEach(r => r.classList.remove('selected'));
-  const sel = document.querySelector(`.fc-row[data-idx="${idx}"]`);
-  if (sel) sel.classList.add('selected');
+async function markActedOn(dollarValue, type) {
+  if (!currentField) return;
+  await sb.from('ai_insights').update({ acted_on: true }).eq('field_id', currentField.id).eq('rec_type', type).eq('acted_on', false);
+  updateKPIs();
+  event.target.textContent = '✓ Acted on';
+  event.target.classList.replace('bg-green-50', 'bg-green-200');
 }
 
-function setWeatherLoading(loading, error=false) {
-  document.getElementById('w-loading').style.display = loading && !error ? 'block' : 'none';
-  document.getElementById('w-data').style.display = 'none';
-  document.getElementById('w-error').style.display = error ? 'block' : 'none';
+async function dismissInsight() {
+  if (!currentField) return;
+  await sb.from('ai_insights').update({ dismissed: true }).eq('field_id', currentField.id).is('acted_on', false);
+  event.target.closest('.insight-card').style.opacity = '0.4';
+  updateKPIs();
 }
 
-// init
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    p => { map.setView([p.coords.latitude, p.coords.longitude], 13); fetchWeather(p.coords.latitude, p.coords.longitude, 'Your location'); },
-    () => fetchWeather(DEFAULT_LAT, DEFAULT_LON, 'Colorado Springs, CO')
-  );
-} else {
-  fetchWeather(DEFAULT_LAT, DEFAULT_LON, 'Colorado Springs, CO');
+function quickAsk(q) {
+  document.getElementById('ai-question').value = q;
+  askQuestion();
 }
 
-/* ══════════════════════
-   GDD CALCULATOR (single bar)
-══════════════════════ */
-const CROP_GDD = { corn:2700, soy:2500, wheat:2000, canola:1800 };
-const CROP_SEASON_DAYS = { corn:120, soy:110, wheat:200, canola:100 }; // typical days to maturity from planting
-const CROP_LABEL = { corn:'corn', soy:'soybeans', wheat:'winter wheat', canola:'canola' };
+async function askQuestion() {
+  const q = document.getElementById('ai-question').value.trim();
+  if (!q) return;
 
-function calcGDD() {
-  const crop  = document.getElementById('gdd-crop').value;
-  const plantStr = document.getElementById('gdd-plant').value;
-  if (!plantStr) return;
-
-  const plantDate = new Date(plantStr + 'T00:00:00');
-  const today = new Date();
-  const days = Math.max(Math.round((today - plantDate) / 86400000), 0);
-  document.getElementById('gdd-days-display').textContent = days;
-
-  const high = window._avgHi ?? 82;
-  const low  = window._avgLo ?? 58;
-  const daily = Math.max(((high+low)/2)-50, 0);
-  const total = Math.round(daily*days);
-  const target= CROP_GDD[crop];
-  const pct   = Math.min(Math.round((total/target)*100),100);
-
-  document.getElementById('gdd-bar').style.width = pct+'%';
-  const rem = target-total;
-  document.getElementById('gdd-status').textContent = rem<=0
-    ? `Maturity reached · ${total.toLocaleString()} / ${target.toLocaleString()} GDD`
-    : `${pct}% · ${total.toLocaleString()} / ${target.toLocaleString()} GDD`;
-
-  document.getElementById('gdd-plant-lbl').textContent = plantDate.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-
-  const harvestDate = new Date(plantDate.getTime() + CROP_SEASON_DAYS[crop]*86400000);
-  document.getElementById('gdd-harvest-lbl').textContent =
-    `Est. harvest (${CROP_LABEL[crop]}): ${harvestDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
-
-  // persist crop/planting date to the active saved field, if any
-  if (activeFieldName && savedFields[activeFieldName]) {
-    savedFields[activeFieldName].crop = crop;
-    savedFields[activeFieldName].plantDate = plantStr;
+  // Detect cross-field intent
+  const crossFieldKeywords = ['all fields', 'compare', 'all 4', 'across fields', 'every field', 'which field'];
+  if (crossFieldKeywords.some(k => q.toLowerCase().includes(k))) {
+    window.location.href = `report.html?q=${encodeURIComponent(q)}`;
+    return;
   }
-}
 
-document.getElementById('gdd-plant').value = new Date(Date.now()-45*86400000).toISOString().slice(0,10);
-calcGDD();
+  const btn = document.getElementById('ask-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  const answerDiv = document.getElementById('ai-answer');
+  answerDiv.classList.remove('hidden');
+  answerDiv.innerHTML = '<div class="flex items-center gap-2 text-sm text-gray-400"><span class="spinner"></span> Thinking...</div>';
+
+  const gddData = { f1: { gdd: 666, stage: 'V10-V12' }, f2: { gdd: 439, stage: 'V4-V6' }, f3: { gdd: 780, stage: 'V10-V12' }, f4: { gdd: 556, stage: 'R1 beginning flower' } };
+  const g = currentField ? gddData[currentField.id] : {};
+  const historyText = allHistory.slice(0, 6).map(h => `${h.event_date}: ${h.event_type} — ${h.product}`).join('; ');
+
+  const prompt = `You are an agronomic AI advisor. Answer this farmer's question concisely and practically.
+
+Context: ${currentField ? `Field: ${currentField.name}, ${currentField.crop}, ${currentField.acres} acres, ${currentField.county} ${currentField.state}. GDD: ${g.gdd} (${g.stage}). Recent history: ${historyText}. N cost: $${document.getElementById('cost-n').value}/ton.` : 'No field selected.'}
+
+Question: ${q}
+
+Answer in 2-4 sentences. Be specific, practical, and include dollar figures where relevant. Plain English only.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    answerDiv.innerHTML = `<div class="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed">${data.content[0].text}</div>`;
+  } catch(e) {
+    answerDiv.innerHTML = `<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600">Error: ${e.message}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Ask ↗';
+}
 </script>
 </body>
 </html>
