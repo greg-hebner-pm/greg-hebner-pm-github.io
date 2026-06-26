@@ -323,7 +323,19 @@ const gddData = {
 document.addEventListener('DOMContentLoaded', async () => {
   initMap();
   const {data} = await sb.from('fields').select('*');
-  if (data) { allFields = data; renderUserFieldTabs(); }
+  if (data && data.length) {
+    allFields = data;
+    renderUserFieldTabs();
+  } else {
+    // Supabase unavailable — use hardcoded fallback
+    allFields = [
+      {id:'f1',name:'Hardin North',crop:'Corn',acres:480,county:'Hardin County',state:'OH',soil_type:'Silty clay loam',planted_date:'2026-04-27',lat:'40.7539',lng:'-83.6340'},
+      {id:'f2',name:'Lenawee East',crop:'Soybeans',acres:390,county:'Lenawee County',state:'MI',soil_type:'Sandy loam',planted_date:'2026-05-11',lat:'41.8975',lng:'-83.9052'},
+      {id:'f3',name:'Grundy South',crop:'Corn',acres:620,county:'Grundy County',state:'IL',soil_type:'Silt loam',planted_date:'2026-04-22',lat:'41.3022',lng:'-88.4231'},
+      {id:'f4',name:'Story West',crop:'Soybeans',acres:660,county:'Story County',state:'IA',soil_type:'Loam',planted_date:'2026-05-15',lat:'42.0308',lng:'-93.6319'}
+    ];
+    renderUserFieldTabs();
+  }
   await selectField('f1');
   // Wire field select with proper async handling
   document.getElementById('field-select').addEventListener('change', async function() {
