@@ -419,6 +419,16 @@ function showFieldSetupModal(center, acres, points) {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">COUNTY</label>
+          <input id="uf-county" type="text" placeholder="e.g. Hardin County" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">STATE</label>
+          <input id="uf-state" type="text" placeholder="e.g. OH" maxlength="2" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;text-transform:uppercase;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
           <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">PLANTED DATE</label>
           <input id="uf-planted" type="date" value="2026-05-01" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
         </div>
@@ -454,8 +464,10 @@ function confirmSaveField(centerLat, centerLng, points) {
   const acres = parseInt(document.getElementById('uf-acres').value) || 0;
   const planted_date = document.getElementById('uf-planted').value;
   const soil_type = document.getElementById('uf-soil').value;
+  const county = document.getElementById('uf-county').value.trim() || 'User-defined';
+  const state = document.getElementById('uf-state').value.trim().toUpperCase() || '—';
   const notes = document.getElementById('uf-notes').value.trim();
-  const uf = {id:'u'+Date.now(), name, crop, acres, planted_date, soil_type, notes, points, center:[centerLat,centerLng]};
+  const uf = {id:'u'+Date.now(), name, crop, acres, planted_date, soil_type, county, state, notes, points, center:[centerLat,centerLng]};
   userFields.push(uf);
   localStorage.setItem('gtc_user_fields', JSON.stringify(userFields));
   renderUserFieldOnMap(uf);
@@ -540,7 +552,8 @@ async function selectUserField(uf) {
     acres: uf.acres || '?',
     crop: uf.crop || 'Unknown',
     soil_type: uf.soil_type || 'Unknown',
-    county: 'User-defined', state: '—',
+    county: uf.county || 'User-defined',
+    state: uf.state || '—',
     planted_date: uf.planted_date || null,
     notes: uf.notes || '',
     lat, lng
@@ -548,8 +561,9 @@ async function selectUserField(uf) {
   map.setView([lat,lng], 13);
   // Update field summary bar
   const plantedStr = uf.planted_date ? new Date(uf.planted_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Unknown';
+  const locationStr = uf.county && uf.county !== 'User-defined' ? `${uf.county}${uf.state && uf.state !== '—' ? ', '+uf.state : ''}` : 'User-defined field';
   document.getElementById('field-summary').innerHTML =
-    `<span>📍 User-defined field</span><span>🌱 Planted ${plantedStr}</span><span>📐 ~${uf.acres||'?'} ac</span><span>🪱 ${uf.soil_type||'—'}</span>`;
+    `<span>📍 ${locationStr}</span><span>🌱 Planted ${plantedStr}</span><span>📐 ~${uf.acres||'?'} ac</span><span>🪱 ${uf.soil_type||'—'}</span>`;
   // Clear stale history from previous field
   allHistory = [];
   allSuppliers = [];
