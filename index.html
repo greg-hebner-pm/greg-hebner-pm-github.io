@@ -659,7 +659,7 @@ async function askQuestion() {
   const q=input.value.trim();
   if(!q) return;
   const crossField=['all fields','compare','all 4','across fields','every field','which field'];
-  if(crossField.some(k=>q.toLowerCase().includes(k))){window.location.href=`report.html?q=${encodeURIComponent(q)}`;return;}
+  const isCrossField=crossField.some(k=>q.toLowerCase().includes(k));
   const btn=document.getElementById('ask-btn');
   btn.disabled=true; btn.textContent='...';
   input.value='';
@@ -668,10 +668,17 @@ async function askQuestion() {
   answerDiv.innerHTML=`<div style="text-align:right"><span class="q-bubble">${q}</span></div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted)"><span class="spinner"></span> Thinking...</div>`;
   const g=currentField?gddData[currentField.id]:{};
   const hist=allHistory.slice(0,5).map(h=>`${h.event_date}: ${h.event_type} — ${h.product}`).join('; ');
+  let contextStr;
+  if(isCrossField){
+    const allFieldSummaries=fields.map(f=>{const fg=gddData[f.id]||{};return `${f.name} (${f.crop}, ${f.acres}ac, ${f.county} ${f.state}): GDD ${fg.gdd||'?'} stage ${fg.stage||'?'}`;}).join(' | ');
+    contextStr=`Portfolio of 4 fields: ${allFieldSummaries}.`;
+  } else {
+    contextStr=currentField?`Field: ${currentField.name}, ${currentField.crop}, ${currentField.acres} ac, ${currentField.county} ${currentField.state}. GDD: ${g.gdd} (${g.stage}). History: ${hist}.`:'No field selected.';
+  }
   const prompt=`You are an agronomic AI advisor. Answer this farmer's question concisely and practically.
-Context: ${currentField?`Field: ${currentField.name}, ${currentField.crop}, ${currentField.acres} ac, ${currentField.county} ${currentField.state}. GDD: ${g.gdd} (${g.stage}). History: ${hist}.`:'No field selected.'}
+Context: ${contextStr}
 Question: ${q}
-Answer in 2-4 sentences. Be specific, practical, include dollar figures where relevant.`;
+Answer in 3-5 sentences. Be specific, practical, include dollar figures where relevant.`;
   try {
     const data=JSON.parse(await(await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:prompt}]})})).text());
     if(!data.content||!data.content[0]) throw new Error(JSON.stringify(data));
