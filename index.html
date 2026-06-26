@@ -152,7 +152,7 @@
     </div>
   </div>
   <div style="position:relative;">
-    <select id="field-select" onchange="handleFieldSelect(this.value)" style="width:100%;padding:9px 12px;font-size:13px;font-weight:500;border:1px solid var(--card-border);border-radius:8px;background:#fff;color:var(--text-primary);cursor:pointer;appearance:none;-webkit-appearance:none;">
+    <select id="field-select" style="width:100%;padding:9px 12px;font-size:13px;font-weight:500;border:1px solid var(--card-border);border-radius:8px;background:#fff;color:var(--text-primary);cursor:pointer;appearance:none;-webkit-appearance:none;">
       <option value="f1">Hardin North — Corn · OH · 480 ac</option>
       <option value="f2">Lenawee East — Soy · MI · 390 ac</option>
       <option value="f3">Grundy South — Corn · IL · 620 ac</option>
@@ -325,6 +325,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const {data} = await sb.from('fields').select('*');
   if (data) { allFields = data; renderUserFieldTabs(); }
   await selectField('f1');
+  // Wire field select with proper async handling
+  document.getElementById('field-select').addEventListener('change', async function() {
+    await handleFieldSelect(this.value);
+  });
 });
 
 // ── MAP ──
@@ -470,12 +474,12 @@ function addUserFieldTab(uf) {
   sel.appendChild(opt);
 }
 
-function handleFieldSelect(val) {
+async function handleFieldSelect(val) {
   const isUserField = userFields.find(f => f.id === val);
   if (isUserField) {
-    selectUserField(isUserField);
+    await selectUserField(isUserField);
   } else {
-    selectField(val);
+    await selectField(val);
   }
   // Show delete button only for custom fields
   document.getElementById('btn-delete-field').style.display = isUserField ? 'inline-block' : 'none';
