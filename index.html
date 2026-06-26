@@ -117,29 +117,30 @@
 </head>
 <body>
 
-<!-- ── HEADER (unified) ── -->
-<div style="background: var(--green-dark);">
-  <div style="max-width:72rem;margin:0 auto;padding:0 1.25rem;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <img src="tractor-logo.png" alt="" style="width:56px;height:56px;border-radius:8px;" onerror="this.style.display='none'"/>
-        <div>
-          <div style="font-size:16px;font-weight:600;color:#fff;line-height:1.2;">The Green Tractor Company</div>
-          <div style="font-size:10px;color:#c8e6a0;line-height:1.4;max-width:500px;margin-top:3px;">Corn and soybean operations across the Midwest — field data, live weather, and agronomic history turned into plain-English AI recommendations with dollar-value outcomes.</div>
-        </div>
+<!-- ── PAGE SHELL ── -->
+<div style="max-width:72rem;margin:0 auto;">
+
+<!-- ── HEADER ── -->
+<div style="background:var(--green-dark);border-radius:0 0 10px 10px;margin-bottom:16px;">
+  <div style="padding:10px 20px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <img src="tractor-logo.png" alt="" style="width:56px;height:56px;border-radius:8px;" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-size:16px;font-weight:600;color:#fff;line-height:1.2;">The Green Tractor Company</div>
+        <div style="font-size:10px;color:#c8e6a0;line-height:1.4;max-width:500px;margin-top:3px;">Corn and soybean operations across the Midwest — field data, live weather, and agronomic history turned into plain-English AI recommendations with dollar-value outcomes.</div>
       </div>
-      <div style="display:flex;align-items:center;gap:20px;">
-        <div style="text-align:right;">
-          <div style="font-size:12px;font-weight:600;color:#fff;">Gregory J. Hebner</div>
-          <div style="font-size:11px;color:#c8e6a0;">Product Manager</div>
-        </div>
-        <a href="https://www.linkedin.com/in/greghebner/" target="_blank" style="font-size:11px;color:#c8e6a0;text-decoration:underline;">LinkedIn</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <div style="text-align:right;">
+        <div style="font-size:12px;font-weight:600;color:#fff;">Gregory J. Hebner</div>
+        <div style="font-size:11px;color:#c8e6a0;">Product Manager</div>
       </div>
+      <a href="https://www.linkedin.com/in/greghebner/" target="_blank" style="font-size:11px;color:#c8e6a0;text-decoration:underline;">LinkedIn</a>
     </div>
   </div>
 </div>
 
-<div style="max-width:72rem;margin:0 auto;padding:20px 1.25rem;display:flex;flex-direction:column;gap:16px;">
+<div style="display:flex;flex-direction:column;gap:16px;padding:0 0 20px;">
 
 <!-- ── FIELD SELECTOR ── -->
 <div class="card p-4">
@@ -618,7 +619,7 @@ function openOpsCenter() {
   const topRec=topInsight?topInsight.textContent.trim():'See AI Field Intelligence panel for current recommendations.';
   const overlay=document.getElementById('modal-overlay');
   const title=document.getElementById('modal-title');
-  const body=document.getElementById('modal-body');
+  const body=document.getElementById('modal-content');
   title.textContent='Push to John Deere Operations Center';
   body.innerHTML=`
     <div style="background:#f0f7ee;border:1px solid #b8ddb0;border-radius:8px;padding:16px;margin-bottom:16px;">
@@ -756,7 +757,7 @@ async function askQuestion() {
   const hist=allHistory.slice(0,5).map(h=>`${h.event_date}: ${h.event_type} — ${h.product}`).join('; ');
   let contextStr;
   if(isCrossField){
-    const allFieldSummaries=fields.map(f=>{const fg=gddData[f.id]||{};return `${f.name} (${f.crop}, ${f.acres}ac, ${f.county} ${f.state}): GDD ${fg.gdd||'?'} stage ${fg.stage||'?'}`;}).join(' | ');
+    const allFieldSummaries=allFields.map(f=>{const fg=gddData[f.id]||{};return `${f.name} (${f.crop}, ${f.acres}ac, ${f.county} ${f.state}): GDD ${fg.gdd||'?'} stage ${fg.stage||'?'}`;}).join(' | ');
     contextStr=`Portfolio of 4 fields: ${allFieldSummaries}.`;
   } else {
     contextStr=currentField?`Field: ${currentField.name}, ${currentField.crop}, ${currentField.acres} ac, ${currentField.county} ${currentField.state}. GDD: ${g.gdd} (${g.stage}). History: ${hist}.`:'No field selected.';
@@ -784,5 +785,7 @@ async function updateKPIs(){
   document.getElementById('kpi-adoption').textContent=total?Math.round((acted/total)*100)+'%':'—%';
 }
 </script>
+</div>
+</div>
 </body>
 </html>
