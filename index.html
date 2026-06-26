@@ -498,9 +498,11 @@ async function handleFieldSelect(val) {
 }
 
 function deleteCurrentField() {
-  if (!currentField || fields.find(f=>f.id===currentField.id)) return;
-  if (!confirm(`Delete "${currentField.name}"? This cannot be undone.`)) return;
-  const id = currentField.id;
+  const sel = document.getElementById('field-select');
+  const id = sel ? sel.value : currentField?.id;
+  const uf = userFields.find(f => f.id === id);
+  if (!uf) { alert('Only user-defined fields can be deleted.'); return; }
+  if (!confirm(`Delete "${uf.name}"? This cannot be undone.`)) return;
   userFields = userFields.filter(f => f.id !== id);
   localStorage.setItem('gtc_user_fields', JSON.stringify(userFields));
   // Remove from map
