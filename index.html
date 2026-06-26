@@ -261,6 +261,7 @@
           <button class="metric-link" onclick="openModal('suppliers')">🏪 Suppliers & costs →</button>
           <button class="metric-link" onclick="openModal('history')">📋 Field activity →</button>
           <button class="metric-link" onclick="openModal('machinery')">🚜 Machinery schedule →</button>
+          <button class="metric-link" onclick="openModal('opscenter')" style="color:#367c2b;font-weight:700;">🔗 Push to Ops Center →</button>
         </div>
       </div>
     </div>
@@ -491,6 +492,7 @@ async function loadFieldData(fieldId) {
 
 // ── MODALS ──
 function openModal(type) {
+  if(type==='opscenter'){openOpsCenter();return;}
   const overlay=document.getElementById('modal-overlay');
   const title=document.getElementById('modal-title');
   const content=document.getElementById('modal-content');
@@ -566,6 +568,49 @@ function openModal(type) {
         </div>`;
       }).join('')}`;
   }
+}
+
+function openOpsCenter() {
+  if(!currentField) return;
+  const g=gddData[currentField.id]||{};
+  const topInsight=document.querySelector('.insight-card h4');
+  const topRec=topInsight?topInsight.textContent.trim():'See AI Field Intelligence panel for current recommendations.';
+  const overlay=document.getElementById('modal-overlay');
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  title.textContent='Push to John Deere Operations Center';
+  body.innerHTML=`
+    <div style="background:#f0f7ee;border:1px solid #b8ddb0;border-radius:8px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#367c2b;margin-bottom:10px;">PRESCRIPTION PACKET — ${currentField.name.toUpperCase()}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+        <div><span style="color:#6b7280">Field:</span> <strong>${currentField.name}</strong></div>
+        <div><span style="color:#6b7280">Acres:</span> <strong>${currentField.acres} ac</strong></div>
+        <div><span style="color:#6b7280">Crop:</span> <strong>${currentField.crop}</strong></div>
+        <div><span style="color:#6b7280">Growth stage:</span> <strong>${g.stage||'—'}</strong></div>
+        <div><span style="color:#6b7280">GDD (base 50°F):</span> <strong>${g.gdd||'—'}</strong></div>
+        <div><span style="color:#6b7280">Season day:</span> <strong>${currentField.daysPlanted||56}</strong></div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#6b7280;margin-bottom:6px;">TOP PRIORITY RECOMMENDATION</div>
+      <div style="font-size:13px;line-height:1.6;padding:12px;background:#fafaf7;border-radius:6px;border-left:3px solid #367c2b;">${topRec}</div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#6b7280;margin-bottom:6px;">DELIVERY TARGET</div>
+      <div style="font-size:13px;color:#374151;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">🖥️ <strong>Gen 5 CommandCenter™ Display</strong> — paired machine</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">☁️ <strong>MyJohnDeere Operations Center</strong> — field sync via JDLink™</div>
+        <div style="display:flex;align-items:center;gap:8px;">📡 <strong>Machine Sync</strong> — variable-rate prescription ready on confirmation</div>
+      </div>
+    </div>
+    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px;">
+      ⚠️ <strong>Portfolio demo:</strong> This prototype illustrates the Operations Center API integration pattern. In production, this packet would transmit via the MyJohnDeere API (OAuth 2.0) to the paired display and trigger a machine sync confirmation on the cab screen.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeModal()" style="padding:8px 16px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;cursor:pointer;background:#fff;">Cancel</button>
+      <button onclick="this.textContent='✓ Sent to Ops Center';this.style.background='#367c2b';setTimeout(closeModal,1500)" style="padding:8px 18px;background:#367c2b;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">📤 Confirm & Push</button>
+    </div>`;
+  overlay.classList.remove('hidden');
 }
 
 function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
