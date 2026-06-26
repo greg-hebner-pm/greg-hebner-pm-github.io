@@ -338,6 +338,11 @@ function initMap() {
     if (drawnPolyline) map.removeLayer(drawnPolyline);
     drawnPolyline = L.polyline(drawnPoints,{color:'#4a7c3f',weight:2,dashArray:'5,5'}).addTo(map);
   });
+  // Migrate any legacy user fields missing crop/planted_date
+  userFields = userFields.map(uf => ({
+    crop: 'Corn', planted_date: '2026-05-01', soil_type: 'Silt loam', notes: '', ...uf
+  }));
+  localStorage.setItem('gtc_user_fields', JSON.stringify(userFields));
   userFields.forEach(renderUserFieldOnMap);
 }
 
@@ -358,22 +363,93 @@ function clearDraw() {
 
 function saveDrawn() {
   if (drawnPoints.length < 3){alert('Click at least 3 points to define a field boundary.');return;}
-  const name = prompt('Name this field:');
-  if (!name) return;
   if (drawnPolygon) map.removeLayer(drawnPolygon);
   drawnPolygon = L.polygon(drawnPoints,{color:'#4a7c3f',fillColor:'#8bc97a',fillOpacity:0.25,weight:2}).addTo(map);
   const center = drawnPolygon.getBounds().getCenter();
-  const acres = Math.round(L.GeometryUtil ? L.GeometryUtil.geodesicArea(drawnPoints)/4047 : drawnPoints.length * 10);
-  const uf = {id:'u'+Date.now(),name,points:drawnPoints.map(p=>[p.lat,p.lng]),center:[center.lat,center.lng],acres};
-  userFields.push(uf);
-  localStorage.setItem('gtc_user_fields',JSON.stringify(userFields));
-  renderUserFieldOnMap(uf);
-  addUserFieldTab(uf);
+  const acresCalc = Math.round(L.GeometryUtil ? L.GeometryUtil.geodesicArea(drawnPoints)/4047 : drawnPoints.length * 10);
+  showFieldSetupModal(center, acresCalc, drawnPoints.map(p=>[p.lat,p.lng]));
   isDrawing=false; drawnPoints=[];
   if(drawnPolyline){map.removeLayer(drawnPolyline);drawnPolyline=null;}
   document.getElementById('btn-draw').classList.remove('active');
   map.getContainer().style.cursor='';
+}
+
+function showFieldSetupModal(center, acres, points) {
+  const overlay = document.getElementById('modal-overlay');
+  const title = document.getElementById('modal-title');
+  const body = document.getElementById('modal-content');
+  title.textContent = 'Set Up New Field';
+  body.innerHTML = `
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Enter details for this field. This information powers the weather, GDD, and AI recommendations.</p>
+    <div style="display:grid;gap:12px;">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">FIELD NAME</label>
+        <input id="uf-name" type="text" placeholder="e.g. Hebner North 40" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">CROP</label>
+          <select id="uf-crop" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;">
+            <option value="Corn">Corn</option>
+            <option value="Soybeans">Soybeans</option>
+            <option value="Wheat">Wheat</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">ACRES (est.)</label>
+          <input id="uf-acres" type="number" value="${acres}" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">PLANTED DATE</label>
+          <input id="uf-planted" type="date" value="2026-05-01" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">SOIL TYPE</label>
+          <select id="uf-soil" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;">
+            <option value="Silt loam">Silt loam</option>
+            <option value="Clay loam">Clay loam</option>
+            <option value="Sandy loam">Sandy loam</option>
+            <option value="Silty clay loam">Silty clay loam</option>
+            <option value="Loam">Loam</option>
+            <option value="Sandy">Sandy</option>
+            <option value="Unknown">Unknown</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">NOTES (optional)</label>
+        <input id="uf-notes" type="text" placeholder="e.g. rented ground, tile drainage, east-facing slope" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="closeModal()" style="padding:8px 16px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;cursor:pointer;background:#fff;">Cancel</button>
+      <button onclick="confirmSaveField(${center.lat},${center.lng},${JSON.stringify(points).replace(/"/g,'&quot;')})" style="padding:8px 18px;background:var(--green-dark);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">Save Field →</button>
+    </div>`;
+  overlay.classList.remove('hidden');
+}
+
+function confirmSaveField(centerLat, centerLng, points) {
+  const name = document.getElementById('uf-name').value.trim();
+  if (!name) { alert('Please enter a field name.'); return; }
+  const crop = document.getElementById('uf-crop').value;
+  const acres = parseInt(document.getElementById('uf-acres').value) || 0;
+  const planted_date = document.getElementById('uf-planted').value;
+  const soil_type = document.getElementById('uf-soil').value;
+  const notes = document.getElementById('uf-notes').value.trim();
+  const uf = {id:'u'+Date.now(), name, crop, acres, planted_date, soil_type, notes, points, center:[centerLat,centerLng]};
+  userFields.push(uf);
+  localStorage.setItem('gtc_user_fields', JSON.stringify(userFields));
+  renderUserFieldOnMap(uf);
+  addUserFieldTab(uf);
   updateHeaderCounts();
+  closeModal();
+  // Auto-select the new field
+  const sel = document.getElementById('field-select');
+  sel.value = uf.id;
+  selectUserField(uf);
 }
 
 const userFieldMapLayers = {};
@@ -438,12 +514,96 @@ function syncDropdown(id) {
   document.getElementById('btn-delete-field').style.display = isUserField ? 'inline-block' : 'none';
 }
 
-function selectUserField(uf) {
+async function selectUserField(uf) {
   syncDropdown(uf.id);
-  currentField = {id:uf.id,name:uf.name,acres:uf.acres||'?',crop:'—',soil_type:'—',county:'User-defined',state:'—',planted_date:null,lat:uf.center[0],lng:uf.center[1]};
-  map.setView(uf.center,13);
-  document.getElementById('field-summary').innerHTML=`<span>📍 User-defined field</span><span>📐 ~${uf.acres||'?'} acres (est.)</span>`;
-  document.getElementById('insight-grid').innerHTML=`<div class="insight-card info col-span-2 flex items-center justify-center h-20 text-sm" style="color:var(--text-muted);">No history available for user-defined fields. Click Generate to get AI recommendations.</div>`;
+  const lat = uf.center[0], lng = uf.center[1];
+  currentField = {
+    id: uf.id, name: uf.name,
+    acres: uf.acres || '?',
+    crop: uf.crop || 'Unknown',
+    soil_type: uf.soil_type || 'Unknown',
+    county: 'User-defined', state: '—',
+    planted_date: uf.planted_date || null,
+    notes: uf.notes || '',
+    lat, lng
+  };
+  map.setView([lat,lng], 13);
+  // Update field summary bar
+  const plantedStr = uf.planted_date ? new Date(uf.planted_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Unknown';
+  document.getElementById('field-summary').innerHTML =
+    `<span>📍 User-defined field</span><span>🌱 Planted ${plantedStr}</span><span>📐 ~${uf.acres||'?'} ac</span><span>🪱 ${uf.soil_type||'—'}</span>`;
+  // Fetch live weather for this location
+  await fetchWeather(lat, lng);
+  // Compute GDD from weather API historical data and update metrics
+  await updateUserMetrics(uf, lat, lng);
+  // Generate AI insights with real context
+  generateInsights();
+}
+
+async function updateUserMetrics(uf, lat, lng) {
+  // Estimate GDD base 50°F from planting date to today using Open-Meteo historical
+  let gddEst = 0, stage = '—', harvestDays = '—';
+  if (uf.planted_date) {
+    try {
+      const planted = new Date(uf.planted_date);
+      const today = new Date('2026-06-23');
+      const daysPlanted = Math.floor((today - planted) / 86400000);
+      // Fetch historical daily temps from planting to today
+      const startDate = uf.planted_date;
+      const endDate = '2026-06-22';
+      const hUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto&start_date=${startDate}&end_date=${endDate}`;
+      const hData = await (await fetch(hUrl)).json();
+      if (hData.daily) {
+        gddEst = hData.daily.temperature_2m_max.reduce((sum, hi, i) => {
+          const lo = hData.daily.temperature_2m_min[i];
+          const avg = (hi + lo) / 2;
+          return sum + Math.max(0, avg - 50);
+        }, 0);
+        gddEst = Math.round(gddEst);
+      }
+      // Estimate growth stage and days to harvest by crop
+      if (uf.crop === 'Corn') {
+        stage = gddEst < 200 ? 'VE-V3' : gddEst < 450 ? 'V4-V6' : gddEst < 800 ? 'V7-V10' : gddEst < 1100 ? 'V10-V12' : gddEst < 1400 ? 'VT-R1' : gddEst < 1925 ? 'R2-R4' : 'R5-R6';
+        const totalGdd = 2700;
+        const remaining = Math.max(0, totalGdd - gddEst);
+        harvestDays = Math.round(remaining / 18); // ~18 GDD/day average
+      } else if (uf.crop === 'Soybeans') {
+        stage = gddEst < 300 ? 'VE-V2' : gddEst < 600 ? 'V3-V5' : gddEst < 900 ? 'R1-R2' : gddEst < 1200 ? 'R3-R4' : 'R5-R7';
+        harvestDays = Math.round(Math.max(0, 1800 - gddEst) / 16);
+      } else {
+        stage = 'Growing';
+        harvestDays = '—';
+      }
+      // Store computed GDD in gddData for AI prompt use
+      gddData[uf.id] = {gdd: gddEst, stage, harvestDays, maxGdd: uf.crop==='Corn'?2700:1800};
+      // Update metrics panel
+      const pct = Math.min(100, Math.round((gddEst / (uf.crop==='Corn'?2700:1800)) * 100));
+      document.getElementById('gdd-total').textContent = gddEst + ' GDD';
+      document.getElementById('gdd-bar').style.width = pct + '%';
+      document.getElementById('gdd-planted').textContent = 'Planted: ' + planted.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      document.getElementById('gdd-stage').textContent = stage;
+      document.getElementById('gdd-harvest').textContent = harvestDays !== '—' ? '~' + harvestDays + ' days' : '—';
+      document.getElementById('m-acres').textContent = (uf.acres||'?') + ' ac';
+      document.getElementById('m-days').textContent = daysPlanted + ' days';
+      document.getElementById('m-crop').textContent = uf.crop || '—';
+      document.getElementById('m-soil').textContent = uf.soil_type || '—';
+      // Cost prefs — use defaults for user fields
+      document.getElementById('c-n').textContent = '$866/ton';
+      document.getElementById('c-fuel').textContent = '$3.85/gal';
+      document.getElementById('c-seed').textContent = '$315/bag';
+    } catch(e) {
+      console.warn('GDD fetch failed:', e);
+      document.getElementById('gdd-total').textContent = '— GDD';
+      document.getElementById('gdd-stage').textContent = '—';
+    }
+  } else {
+    // No planted date — clear metrics gracefully
+    document.getElementById('gdd-total').textContent = '— GDD';
+    document.getElementById('gdd-stage').textContent = 'No plant date';
+    document.getElementById('m-acres').textContent = (uf.acres||'?') + ' ac';
+    document.getElementById('m-crop').textContent = uf.crop || '—';
+    document.getElementById('m-soil').textContent = uf.soil_type || '—';
+  }
 }
 
 function updateHeaderCounts() {
@@ -669,16 +829,24 @@ async function generateInsights() {
   const g=gddData[currentField.id]||{gdd:0,stage:'unknown',harvestDays:'?'};
   const planted=currentField.planted_date?new Date(currentField.planted_date):null;
   const days=planted?Math.floor((new Date('2026-06-23')-planted)/86400000):'?';
-  const histText=allHistory.map(h=>`${h.event_date}: ${h.event_type} — ${h.product} @ ${h.rate}. ${h.notes}`).join('\n');
-  const {data:cp}=await sb.from('cost_prefs').select('n_price,fuel_price').eq('field_id',currentField.id).single();
+  const isUserField = !!userFields.find(f=>f.id===currentField.id);
+  const histText = isUserField
+    ? (currentField.notes ? `Field notes: ${currentField.notes}` : 'User-defined field — no prior history on record.')
+    : allHistory.map(h=>`${h.event_date}: ${h.event_type} — ${h.product} @ ${h.rate}. ${h.notes}`).join('\n');
+  let cp = {n_price:866, fuel_price:3.85};
+  if (!isUserField) {
+    const {data:cpData}=await sb.from('cost_prefs').select('n_price,fuel_price').eq('field_id',currentField.id).single();
+    if (cpData) cp = cpData;
+  }
 
   const prompt=`You are an agronomic AI advisor for a Midwest farm. Generate exactly 4 concise, actionable field recommendations as JSON.
 
-FIELD: ${currentField.name}, ${currentField.county}, ${currentField.state}
+FIELD: ${currentField.name}${isUserField?' (user-defined field)':`, ${currentField.county}, ${currentField.state}`}
 CROP: ${currentField.crop}, ${currentField.acres} acres | SOIL: ${currentField.soil_type}
 PLANTED: ${currentField.planted_date||'unknown'} (${days} days ago)
 GDD: ${g.gdd} (stage: ${g.stage}) | EST. DAYS TO HARVEST: ${g.harvestDays}
 N COST: $${cp?.n_price||866}/ton | DIESEL: $${cp?.fuel_price||3.85}/gal | DATE: June 23, 2026
+LOCATION: lat ${currentField.lat}, lng ${currentField.lng}
 HISTORY:\n${histText||'No history'}
 
 Return ONLY a JSON array, no markdown:
