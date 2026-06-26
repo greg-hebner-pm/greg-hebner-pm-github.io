@@ -131,12 +131,56 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:20px;">
+      <button onclick="togglePMView()" id="pm-toggle-btn" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid #c8e6a0;background:transparent;color:#c8e6a0;cursor:pointer;letter-spacing:.04em;white-space:nowrap;">PM View</button>
       <div style="text-align:right;">
         <div style="font-size:12px;font-weight:600;color:#fff;">Gregory J. Hebner</div>
         <div style="font-size:11px;color:#c8e6a0;">Product Manager</div>
       </div>
       <a href="https://www.linkedin.com/in/greghebner/" target="_blank" style="font-size:11px;color:#c8e6a0;text-decoration:underline;">LinkedIn</a>
     </div>
+  </div>
+</div>
+
+<!-- ── PM CASE STUDY PANEL ── -->
+<div id="pm-panel" style="display:none;background:#fff;border:1px solid var(--card-border);border-radius:10px;padding:28px 32px;margin-bottom:4px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--green-mid);margin-bottom:4px;">PM CASE STUDY</div>
+      <div style="font-size:18px;font-weight:600;color:var(--text-primary);">GTC Field Intelligence Platform</div>
+    </div>
+    <button onclick="togglePMView()" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--text-muted);line-height:1;">✕</button>
+  </div>
+
+  <div style="display:grid;gap:24px;">
+
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px;">WHY I BUILT THIS</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-secondary);">Reading between the lines of the job posting, the underlying problem was clear: farmers are getting squeezed — input costs up, margins compressed — and most available tools were built for agronomists, not the people actually running operations day to day. That's a problem I recognize. My whole career has been about helping channel partners be more successful. The industry is different here, but the dynamic isn't.</p>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-secondary);margin-top:10px;">I don't have a deep farming background. My grandfather ran Hebner Farms in Michigan — that's the user-defined field saved in the demo — and I spent time there growing up, but I wouldn't claim to know what a working farmer needs on a Tuesday in June. So I used the job posting itself as a starting point, built on publicly available agronomic data, and let the Farmer Insights framing in the description guide what to prioritize.</p>
+    </div>
+
+    <div style="height:1px;background:var(--card-border);"></div>
+
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px;">WHAT I BUILT AND WHY</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-secondary);">GDD modeling and nitrogen timing are the centerpiece because they sit at the highest-stakes intersection: short decision windows, clear cost of inaction, quantifiable outcomes. Every recommendation card shows a dollar figure — that was a firm decision from the start. An insight without a dollar value attached is just noise.</p>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-secondary);margin-top:10px;">Other features — grain marketing, equipment scheduling — were scoped out intentionally. The goal was a working, honest demo that does a few things well rather than a wide surface that doesn't hold up under scrutiny.</p>
+    </div>
+
+    <div style="height:1px;background:var(--card-border);"></div>
+
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px;">HOW IT'S BUILT</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-secondary);">GitHub Pages for hosting. Supabase for field history, supplier data, and cost preferences. A Cloudflare Worker proxy sits between the app and the Anthropic API — necessary because GitHub automatically revokes API keys found in public repositories. Open-Meteo handles live and historical weather without cost or key management overhead.</p>
+    </div>
+
+    <div style="height:1px;background:var(--card-border);"></div>
+
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px;">WHAT I'D DO DIFFERENTLY</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-secondary);">This was built ad hoc during a job search, without access to the people who would actually use it or build it. If I were doing this inside Deere the first conversations would be internal — engineers, existing product constraints, what the Operations Center API actually exposes, what the data model looks like underneath. The feature priorities here are based on public agronomic logic and my own judgment. Real priorities would come from those conversations.</p>
+    </div>
+
   </div>
 </div>
 
@@ -997,6 +1041,16 @@ async function updateKPIs(){
   const acted=data.filter(d=>d.acted_on).length;
   const total=data.filter(d=>d.acted_on||d.dismissed).length;
   document.getElementById('kpi-adoption').textContent=total?Math.round((acted/total)*100)+'%':'—%';
+}
+
+function togglePMView() {
+  const panel = document.getElementById('pm-panel');
+  const btn = document.getElementById('pm-toggle-btn');
+  const isVisible = panel.style.display !== 'none';
+  panel.style.display = isVisible ? 'none' : 'block';
+  btn.style.background = isVisible ? 'transparent' : '#c8e6a0';
+  btn.style.color = isVisible ? '#c8e6a0' : 'var(--green-dark)';
+  if (!isVisible) panel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 </script>
 </div>
