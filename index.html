@@ -117,17 +117,17 @@
 </head>
 <body>
 
-<!-- ── HEADER ── -->
-<div class="banner-wrap" style="background: var(--green-dark);">
+<!-- ── HEADER (unified) ── -->
+<div style="background: var(--green-dark); border-bottom: 2px solid #2a5c28;">
   <div class="banner-inner py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <img src="tractor-logo.png" alt="" class="w-8 h-8 rounded-md" onerror="this.style.display='none'"/>
+    <div class="flex items-center gap-4">
+      <img src="tractor-logo.png" alt="" class="rounded-md" style="width:44px;height:44px;" onerror="this.style.display='none'"/>
       <div>
-        <div class="font-semibold text-sm text-white leading-tight">The Green Tractor Company</div>
-        <div class="text-xs text-green-300 leading-tight">Field Intelligence Platform</div>
+        <div class="font-semibold text-white" style="font-size:15px;line-height:1.2;">The Green Tractor Company</div>
+        <div style="font-size:10px;color:#86efac;line-height:1.3;max-width:480px;margin-top:2px;">Corn and soybean operations across the Midwest — field data, live weather, and agronomic history turned into plain-English AI recommendations with dollar-value outcomes.</div>
       </div>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-5">
       <div class="text-right hidden md:block">
         <div class="text-xs font-semibold text-white">Gregory J. Hebner</div>
         <div class="text-xs text-green-300">Product Manager</div>
@@ -137,22 +137,17 @@
   </div>
 </div>
 
-<!-- ── PM BANNER ── -->
-<div class="banner-wrap">
-  <div class="banner-inner py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-    <p class="text-sm text-green-200 leading-relaxed max-w-2xl">Corn and soybean operations across the Midwest face rising input costs and compressed margins. This platform turns field data, live weather, and agronomic history into plain-English AI recommendations — with dollar-value outcomes attached to every action.</p>
-    <div class="flex gap-5 flex-shrink-0">
-      <div class="text-center"><div class="text-xl font-semibold mono text-white" id="hdr-fields">4</div><div class="text-xs text-green-400">fields</div></div>
-      <div class="text-center"><div class="text-xl font-semibold mono text-white" id="hdr-acres">2,150</div><div class="text-xs text-green-400">acres</div></div>
-    </div>
-  </div>
-</div>
-
-<div class="max-w-6xl mx-auto px-5 py-5 space-y-4">
+<div class="banner-inner py-5 space-y-4">
 
 <!-- ── FIELD SELECTOR ── -->
 <div class="card p-4">
-  <span class="slabel">Select field</span>
+  <div class="flex items-center justify-between mb-2">
+    <span class="slabel" style="margin-bottom:0">Select field</span>
+    <div class="flex gap-4">
+      <div class="text-center"><div class="font-semibold mono" style="font-size:15px;color:var(--green-dark)" id="hdr-fields">4</div><div style="font-size:10px;color:var(--text-muted)">fields</div></div>
+      <div class="text-center"><div class="font-semibold mono" style="font-size:15px;color:var(--green-dark)" id="hdr-acres">2,150</div><div style="font-size:10px;color:var(--text-muted)">acres</div></div>
+    </div>
+  </div>
   <div class="flex flex-wrap gap-2 mb-2" id="field-tabs">
     <button class="field-btn active" data-field="f1" onclick="selectField('f1')">Hardin North <span class="tag tag-corn ml-1">Corn</span><span class="tag tag-oh ml-1">OH</span></button>
     <button class="field-btn" data-field="f2" onclick="selectField('f2')">Lenawee East <span class="tag tag-soy ml-1">Soy</span><span class="tag tag-mi ml-1">MI</span></button>
@@ -384,12 +379,33 @@ function renderUserFieldOnMap(uf) {
 
 function addUserFieldTab(uf) {
   const tabs = document.getElementById('field-tabs');
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+  wrapper.dataset.ufid = uf.id;
   const btn = document.createElement('button');
   btn.className = 'field-btn';
   btn.dataset.field = uf.id;
   btn.innerHTML = `${uf.name} <span class="tag" style="background:#e0f0e0;color:#1a4a1a">Custom</span>`;
+  btn.style.paddingRight = '22px';
   btn.onclick = () => selectUserField(uf);
-  tabs.appendChild(btn);
+  const del = document.createElement('button');
+  del.innerHTML = '✕';
+  del.title = 'Delete this field';
+  del.style.cssText = 'position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:10px;color:#888;cursor:pointer;padding:0;line-height:1;';
+  del.onclick = (e) => { e.stopPropagation(); deleteUserField(uf.id); };
+  wrapper.appendChild(btn);
+  wrapper.appendChild(del);
+  tabs.appendChild(wrapper);
+}
+
+function deleteUserField(id) {
+  if (!confirm('Delete this field? This cannot be undone.')) return;
+  userFields = userFields.filter(f => f.id !== id);
+  localStorage.setItem('gtc_user_fields', JSON.stringify(userFields));
+  const wrapper = document.querySelector(`[data-ufid="${id}"]`);
+  if (wrapper) wrapper.remove();
+  if (currentField && currentField.id === id) selectField('f1');
+  updateHeaderCounts();
 }
 
 function renderUserFieldTabs() {
