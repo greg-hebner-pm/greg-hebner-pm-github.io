@@ -944,7 +944,7 @@ Return ONLY a JSON array, no markdown:
 cost_to_execute = realistic cost exposure in dollars. urgent = action needed within 48hr.`;
 
   try {
-    const res=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
     const raw=await res.text();
     const data=JSON.parse(raw);
     if(!data.content||!data.content[0]) throw new Error('Bad response: '+raw.substring(0,200));
@@ -1025,7 +1025,7 @@ Context: ${contextStr}
 Question: ${q}
 Answer in 3-5 sentences. Be specific, practical, include dollar figures where relevant.`;
   try {
-    const data=JSON.parse(await(await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:prompt}]})})).text());
+    const data=JSON.parse(await(await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})})).text());
     if(!data.content||!data.content[0]) throw new Error(JSON.stringify(data));
     answerDiv.innerHTML=`<div style="text-align:right"><span class="q-bubble">${q}</span></div><div class="a-bubble">${data.content[0].text}</div>`;
   } catch(e){
