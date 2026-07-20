@@ -948,7 +948,8 @@ cost_to_execute = realistic cost exposure in dollars. urgent = action needed wit
     const raw=await res.text();
     const data=JSON.parse(raw);
     if(!data.content||!data.content[0]) throw new Error('Bad response: '+raw.substring(0,200));
-    const insights=JSON.parse(data.content[0].text.trim());
+    const cleaned=data.content[0].text.trim().replace(/^```(?:json)?\s*/,'').replace(/```\s*$/,'').trim();
+    const insights=JSON.parse(cleaned);
     const uc={urgent:'urgent',advisory:'advisory',info:'info',timing:'timing'};
     const ui={urgent:'⚠',advisory:'🌿',info:'ℹ',timing:'⏱'};
     document.getElementById('insight-grid').innerHTML=insights.map(ins=>`
